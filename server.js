@@ -79,7 +79,8 @@ app.post('/send-details-email', async (req, res) => {
   try {
     const {
       location,
-      plan,
+      plan: reqPlan,  // Renamed to avoid conflict
+      type,  // Added to handle legacy 'type' from trial forms
       firstName,
       lastName,
       dob,
@@ -93,6 +94,8 @@ app.post('/send-details-email', async (req, res) => {
       emergencyLast,
       emergencyPhone
     } = req.body;
+
+    const plan = reqPlan || type;  // Use 'plan' if present, fallback to 'type'
 
     if (!location || !plan || !firstName || !lastName || !dob || !phone || !email || !address || !state || !city || !postcode) {
       return res.status(400).json({ error: 'Missing required details' });
