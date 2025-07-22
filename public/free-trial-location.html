@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Trial - Lyf 24/7</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            width: 100%;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 20px 40px;
+            box-sizing: border-box;
+        }
+
+        .logo {
+            width: 100px;
+            height: auto;
+            object-fit: contain;
+        }
+
+        .title {
+            font-size: 2.5em;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .steps {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            font-size: 1.1em;
+        }
+
+        .circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 8px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .active .circle {
+            background-color: rgb(227, 25, 54);
+            color: #fff;
+        }
+
+        .inactive .circle {
+            border: 1px solid #888;
+            color: #888;
+        }
+
+        .inactive {
+            color: #888;
+        }
+
+        .form-container {
+            background-color: #111;
+            padding: 30px;
+            border-radius: 10px;
+            width: 300px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1em;
+            color: #fff;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            background-color: #222;
+            border: none;
+            border-radius: 20px;
+            color: #fff;
+            font-size: 1em;
+            box-sizing: border-box;
+            appearance: none;
+        }
+
+        .next {
+            background-color: rgb(227, 25, 54);
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 30px;
+            width: 100%;
+            font-size: 1em;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+
+        footer {
+            margin-top: 50px;
+            padding-bottom: 20px;
+            text-align: center;
+        }
+
+        footer .logo {
+            margin: 0 auto;
+            display: block;
+        }
+
+        .legal {
+            margin-top: 10px;
+            color: #888;
+            font-size: 0.8em;
+        }
+
+        .legal a {
+            color: #888;
+            text-decoration: none;
+            margin: 0 5px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/index.html"><img src="logo.png" alt="Lyf24/7 Logo" class="logo"></a>
+    </header>
+    <h1 class="title">Free Trial Form</h1>
+    <div class="steps">
+        <div class="step active">
+            <div class="circle">1</div>Gym Location
+        </div>
+        <div class="step inactive">
+            <div class="circle">2</div>Personal Details
+        </div>
+    </div>
+    <div class="form-container">
+        <label for="gym-location">Select Gym Location</label>
+        <select id="gym-location">
+            <option value="" selected disabled>Select location</option>
+            <option value="Kogarah">Kogarah</option>
+            <option value="Seven Hills">Seven Hills</option>
+            <option value="North Sydney">North Sydney</option>
+            <option value="Figtree">Figtree</option>
+        </select>
+        <button class="next">Next →</button>
+    </div>
+    <footer>
+        <img src="logo.png" alt="Lyf24/7 Logo" class="logo">
+        <div class="legal">
+            <a href="/privacy.html">Privacy Policy</a> © 2025 Lyf 24/7 is a trading name of BKAJ Fitness Pty Ltd. All rights reserved. <a href="/terms.html">Terms and Conditions</a>
+        </div>
+    </footer>
+    <script>
+        document.querySelector('.next').addEventListener('click', function() {
+            var location = document.querySelector('#gym-location').value;
+            if (location && location !== '') {
+                location = location.toLowerCase().replace(' ', '-');
+                window.location.href = 'free-trial-details.html?location=' + location;
+            } else {
+                alert('Please select a gym location.');
+            }
+        });
+    </script>
+</body>
+</html>

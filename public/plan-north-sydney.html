@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Membership Form - North Sydney</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            box-sizing: border-box;
+        }
+
+        .logo {
+            width: 100px;
+            height: auto;
+            object-fit: contain;
+        }
+
+        .title {
+            font-size: 2.5em;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .steps {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            font-size: 1.1em;
+        }
+
+        .circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 8px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .active .circle {
+            background-color: rgb(227, 25, 54);
+            color: #fff;
+        }
+
+        .inactive .circle {
+            border: 1px solid #888;
+            color: #888;
+        }
+
+        .inactive {
+            color: #888;
+        }
+
+        .form-container {
+            background-color: #111;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%; /* Mobile-first: full width */
+            text-align: left;
+            max-width: 400px; /* Limit on larger screens */
+        }
+
+        .current-plan {
+            color: #888;
+            font-size: 1em;
+        }
+
+        .plan-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .inclusions-title {
+            color: #888;
+            font-size: 1em;
+            margin-top: 20px;
+        }
+
+        .inclusions {
+            list-style: none;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 1fr; /* Mobile-first: single column */
+        }
+
+        .inclusions li {
+            position: relative;
+            padding-left: 25px;
+            margin-bottom: 10px;
+            color: rgb(227, 25, 54);
+        }
+
+        .inclusions li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: rgb(227, 25, 54);
+        }
+
+        .inclusions li span {
+            color: #fff;
+        }
+
+        .options {
+            display: flex;
+            gap: 10px;
+            flex-direction: column; /* Mobile-first: stack vertically */
+        }
+
+        .option {
+            flex: 1;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%; /* Widen to fill container */
+        }
+
+        .option input {
+            display: none;
+        }
+
+        .option label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            background-color: #fff;
+            border-radius: 3px;
+            margin-right: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #000;
+            font-weight: bold;
+        }
+
+        .option input:checked + label .checkbox::before {
+            content: '✓';
+            color: #000;
+        }
+
+        .option.selected {
+            background-color: rgb(227, 25, 54);
+            color: #fff;
+        }
+
+        .option.unselected {
+            background-color: #222;
+            color: #fff;
+        }
+
+        .option-title {
+            font-size: 1em;
+        }
+
+        .option-price {
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            flex-direction: column; /* Mobile-first: stack */
+            gap: 10px;
+        }
+
+        .previous {
+            color: #888;
+            text-decoration: none;
+            font-size: 1em;
+        }
+
+        .next {
+            background-color: rgb(227, 25, 54);
+            color: #fff;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 0.9em;
+            margin-top: 10px;
+            display: none;
+        }
+
+        footer {
+            margin-top: 50px;
+            padding-bottom: 20px;
+            text-align: center;
+        }
+
+        footer .logo {
+            margin: 0 auto;
+            display: block;
+        }
+
+        .legal {
+            margin-top: 10px;
+            color: #888;
+            font-size: 0.8em;
+        }
+
+        .legal a {
+            color: #888;
+            text-decoration: none;
+            margin: 0 5px;
+        }
+
+        /* Responsive Media Queries (detect screen size) */
+        @media (min-width: 600px) { /* Tablets and up */
+            .form-container {
+                width: 400px; /* Fixed width for larger screens */
+            }
+
+            .inclusions {
+                grid-template-columns: 1fr 1fr; /* Two columns on larger screens */
+            }
+
+            .navigation {
+                flex-direction: row; /* Horizontal buttons */
+                gap: 0;
+            }
+
+            .title {
+                font-size: 2.5em; /* Larger title */
+            }
+
+            .steps {
+                flex-wrap: nowrap; /* Keep steps in one line */
+            }
+        }
+
+        @media (max-width: 599px) { /* Mobile tweaks */
+            .option, button, a {
+                padding: 12px 20px; /* Touch-friendly size */
+                font-size: 1.1em; /* Larger text for readability */
+            }
+
+            .steps {
+                flex-wrap: wrap; /* Wrap steps on very small screens */
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/index.html"><img src="logo.png" alt="Lyf24/7 Logo" class="logo"></a>
+    </header>
+    <h1 class="title">Membership Form</h1>
+    <div class="steps">
+        <div class="step active">
+            <div class="circle">1</div>Gym Location
+        </div>
+        <div class="step active">
+            <div class="circle">2</div>Plan Selection
+        </div>
+        <div class="step inactive">
+            <div class="circle">3</div>Personal Details
+        </div>
+        <div class="step inactive">
+            <div class="circle">4</div>Payment
+        </div>
+    </div>
+    <div class="form-container">
+        <div class="current-plan">Current membership plan</div>
+        <div class="plan-title">FREEDOM $18.95 PER WEEK</div>
+        <div class="inclusions-title">Member Inclusions</div>
+        <ul class="inclusions">
+            <li><span>24/7 Access</span></li>
+            <li><span>Free Classes</span></li>
+            <li><span>Free Parking</span></li>
+            <li><span>Free Wifi</span></li>
+        </ul>
+        <div class="options">
+            <div class="option selected">
+                <input type="radio" id="no-contract" name="plan" checked>
+                <label for="no-contract">
+                    <div class="checkbox"></div>
+                    <div>
+                        <div class="option-title">No Contract</div>
+                        <div class="option-price">$18.95/week</div>
+                    </div>
+                </label>
+            </div>
+        </div>
+        <div id="error-message" class="error-message">Please select a membership plan.</div>
+        <div class="navigation">
+            <a href="/location.html" class="previous">← Previous Page</a>
+            <button class="next">Next →</button>
+        </div>
+    </div>
+    <footer>
+        <img src="logo.png" alt="Lyf24/7 Logo" class="logo">
+        <div class="legal">
+            <a href="/privacy.html">Privacy Policy</a> © 2025 Lyf 24/7 is a trading name of BKAJ Fitness Pty Ltd. All rights reserved. <a href="/terms.html">Terms and Conditions</a>
+        </div>
+    </footer>
+    <script>
+        // Hardcode location for stability
+        const gymLocation = 'north-sydney';
+
+        // Next button functionality
+        document.querySelector('.next').addEventListener('click', function() {
+            const plan = document.querySelector('input[name="plan"]:checked');
+            if (plan) {
+                window.location.href = '/details.html?location=' + encodeURIComponent(gymLocation) + '&plan=' + encodeURIComponent(plan.id);
+            } else {
+                document.getElementById('error-message').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

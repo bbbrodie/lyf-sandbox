@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lyf 24/7</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            box-sizing: border-box;
+        }
+
+        .logo {
+            width: 100px;
+            height: auto;
+            object-fit: contain;
+        }
+
+        .title {
+            font-size: 2.5em;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .steps {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            font-size: 1.1em;
+        }
+
+        .circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 8px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .active .circle {
+            background-color: rgb(227, 25, 54);
+            color: #fff;
+        }
+
+        .inactive .circle {
+            border: 1px solid #888;
+            color: #888;
+        }
+
+        .inactive {
+            color: #888;
+        }
+
+        .form-container {
+            background-color: #111;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%; /* Mobile-first: full width */
+            text-align: left;
+            max-width: 400px; /* Limit on larger screens */
+        }
+
+        .section-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 1em;
+            color: #fff;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            background-color: #222;
+            border: none;
+            border-radius: 20px;
+            color: #888;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+
+        #pay-now-name {
+            margin-bottom: 20px;
+        }
+
+        .payment-options {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-direction: column; /* Mobile-first: stack vertically */
+        }
+
+        .payment-option {
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+        .payment-option.selected {
+            background-color: #fff;
+            color: #000;
+        }
+
+        .payment-option.unselected {
+            color: #888;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+            flex-direction: column; /* Mobile-first: stack vertically */
+        }
+
+        .form-row > div {
+            flex: 1;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            flex-direction: column; /* Mobile-first: stack */
+            gap: 10px;
+        }
+
+        .previous {
+            color: #888;
+            text-decoration: none;
+            font-size: 1em;
+        }
+
+        .submit {
+            background-color: rgb(227, 25, 54);
+            color: #fff;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+
+        .in-person-message {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .in-person-text {
+            color: #888;
+            margin-bottom: 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        footer {
+            margin-top: 50px;
+            padding-bottom: 20px;
+            text-align: center;
+        }
+
+        footer .logo {
+            margin: 0 auto;
+            display: block;
+        }
+
+        .legal {
+            margin-top: 10px;
+            color: #888;
+            font-size: 0.8em;
+        }
+
+        .legal a {
+            color: #888;
+            text-decoration: none;
+            margin: 0 5px;
+        }
+
+        /* Responsive Media Queries (detect screen size) */
+        @media (min-width: 600px) { /* Tablets and up */
+            .form-container {
+                width: 400px; /* Fixed width for larger screens */
+            }
+
+            .payment-options {
+                flex-direction: row; /* Horizontal on larger screens */
+            }
+
+            .form-row {
+                flex-direction: row; /* Horizontal on larger screens */
+            }
+
+            .navigation {
+                flex-direction: row; /* Horizontal buttons */
+                gap: 0;
+            }
+
+            .title {
+                font-size: 2.5em; /* Larger title */
+            }
+
+            .steps {
+                flex-wrap: nowrap; /* Keep steps in one line */
+            }
+        }
+
+        @media (max-width: 599px) { /* Mobile tweaks */
+            input, button, a {
+                padding: 12px 20px; /* Touch-friendly size */
+                font-size: 1.1em; /* Larger text for readability */
+            }
+
+            .steps {
+                flex-wrap: wrap; /* Wrap steps on very small screens */
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/index.html"><img src="logo.png" alt="Lyf24/7 Logo" class="logo"></a>
+    </header>
+    <h1 class="title">Membership Form</h1>
+    <div class="steps">
+        <div class="step active">
+            <div class="circle">1</div>Gym Location
+        </div>
+        <div class="step active">
+            <div class="circle">2</div>Plan Selection
+        </div>
+        <div class="step active">
+            <div class="circle">3</div>Personal Details
+        </div>
+        <div class="step active">
+            <div class="circle">4</div>Payment
+        </div>
+    </div>
+    <div class="form-container">
+        <div id="plan-summary" style="margin-bottom: 20px; font-weight: bold;"></div> <!-- Added for plan display -->
+        <div class="payment-options">
+            <div class="payment-option selected" data-type="pay-now">Pay Now</div>
+            <div class="payment-option unselected" data-type="pay-in-club">Pay In Club</div>
+        </div>
+        <form id="payment-form">
+            <div id="pay-now-form">
+                <label for="pay-now-name">Name *</label>
+                <input type="text" id="pay-now-name" placeholder="Name" required>
+                <div id="payment-element">
+                    <!-- Stripe Payment Element will mount here with AU Direct Debit as default -->
+                </div>
+                <div id="payment-message" style="color: red; margin-top: 10px;"></div>
+            </div>
+            <div id="pay-in-club-form" class="hidden">
+                <div class="in-person-message">Pay In Club</div>
+                <div class="in-person-text">You can pay in person. Just visit our gym and complete your payment at the front desk.</div>
+            </div>
+            <input type="hidden" name="location" id="hidden-location">
+            <input type="hidden" name="plan" id="hidden-plan">
+            <input type="hidden" name="firstName" id="hidden-firstName">
+            <input type="hidden" name="lastName" id="hidden-lastName">
+            <input type="hidden" name="dob" id="hidden-dob">
+            <input type="hidden" name="phone" id="hidden-phone">
+            <input type="hidden" name="email" id="hidden-email">
+            <input type="hidden" name="address" id="hidden-address">
+            <input type="hidden" name="state" id="hidden-state">
+            <input type="hidden" name="city" id="hidden-city">
+            <input type="hidden" name="postcode" id="hidden-postcode">
+            <input type="hidden" name="emergencyFirst" id="hidden-emergencyFirst">
+            <input type="hidden" name="emergencyLast" id="hidden-emergencyLast">
+            <input type="hidden" name="emergencyPhone" id="hidden-emergencyPhone">
+            <input type="hidden" name="paymentType" id="hidden-paymentType" value="pay-now">
+            <div class="navigation">
+                <a href="#" class="previous">← Previous Page</a>
+                <button type="submit" class="submit">Submit</button>
+            </div>
+        </form>
+    </div>
+    <footer>
+        <img src="logo.png" alt="Lyf24/7 Logo" class="logo">
+        <div class="legal">
+            <a href="/privacy.html">Privacy Policy</a> © 2025 Lyf 24/7 is a trading name of BKAJ Fitness Pty Ltd. All rights reserved. <a href="/terms.html">Terms and Conditions</a>
+        </div>
+    </footer>
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        const stripe = Stripe('pk_live_51RTu9cGPVHY9A9BIq9SmgnqQ7Ley50MxCCqSmdMfOjFZRP0ETlv8RaxdOeHdv7RCXGrOdm84ewozGZGnIuYQtAKm006hOetVsR');
+
+        let elements;
+        let paymentElement;
+        let payNowClientSecret;
+        let payNowCustomerId;
+
+        // Parse params and set hidden fields first
+        const params = new URLSearchParams(window.location.search);
+        const gymLocation = params.get('location');
+        const normalizedLocation = gymLocation ? gymLocation.toLowerCase().replace(/-/g, '') : '';
+        const plan = params.get('plan');
+
+        document.getElementById('hidden-location').value = normalizedLocation || '';
+        document.getElementById('hidden-plan').value = plan || '';
+        document.getElementById('hidden-firstName').value = params.get('firstName') || '';
+        document.getElementById('hidden-lastName').value = params.get('lastName') || '';
+        document.getElementById('hidden-dob').value = params.get('dob') || '';
+        document.getElementById('hidden-phone').value = params.get('phone') || '';
+        document.getElementById('hidden-email').value = params.get('email') || '';
+        document.getElementById('hidden-address').value = params.get('address') || '';
+        document.getElementById('hidden-state').value = params.get('state') || '';
+        document.getElementById('hidden-city').value = params.get('city') || '';
+        document.getElementById('hidden-postcode').value = params.get('postcode') || '';
+        document.getElementById('hidden-emergencyFirst').value = params.get('emergencyFirst') || '';
+        document.getElementById('hidden-emergencyLast').value = params.get('emergencyLast') || '';
+        document.getElementById('hidden-emergencyPhone').value = params.get('emergencyPhone') || '';
+
+        document.querySelector('.previous').href = `details.html?location=${encodeURIComponent(gymLocation || '')}&plan=${encodeURIComponent(plan || '')}`;
+
+        // Display the selected plan summary
+        const planSummary = document.getElementById('plan-summary');
+        if (plan === 'no-contract') {
+            planSummary.textContent = 'Selected Plan: Freedom - No Strings ($21 per week, billed fortnightly)';
+        } else if (plan === 'loyalty-12-months') {
+            planSummary.textContent = 'Selected Plan: Loyalty - 12 months ($6 for 6 weeks, then $19 per week)';
+        } else {
+            planSummary.textContent = 'Selected Plan: Unknown';
+        }
+
+        async function initStripePayment() {
+            const name = `${document.getElementById('hidden-firstName').value} ${document.getElementById('hidden-lastName').value}`.trim();
+            const email = document.getElementById('hidden-email').value;
+            const addressLine1 = document.getElementById('hidden-address').value;
+            const city = document.getElementById('hidden-city').value;
+            const state = document.getElementById('hidden-state').value;
+            const postcode = document.getElementById('hidden-postcode').value;
+
+            if (!name || !email || !addressLine1 || !city || !state || !postcode) {
+                document.getElementById('payment-message').textContent = 'Missing required details from previous steps (name, email, or address).';
+                document.querySelector('.submit').disabled = true;
+                return;
+            }
+
+            const response = await fetch('https://lyf-test-1.onrender.com/create-setup-intent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: name,
+                    email: email,
+                    address: {
+                        line1: addressLine1,
+                        city: city,
+                        state: state,
+                        postal_code: postcode,
+                        country: 'AU'
+                    }
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                document.getElementById('payment-message').textContent = errorData.error || 'Error loading payment fields.';
+                document.querySelector('.submit').disabled = true;
+                return;
+            }
+
+            const data = await response.json();
+            payNowClientSecret = data.clientSecret;
+            payNowCustomerId = data.customerId;
+
+            const appearance = {
+                theme: 'flat',
+                variables: {
+                    fontFamily: 'sans-serif',
+                    fontSizeBase: '1em',
+                    colorText: '#888',
+                    colorBackground: '#222',
+                    borderRadius: '20px',
+                    colorDanger: 'red',
+                    spacingUnit: '10px'
+                },
+                rules: {
+                    '.Input': {
+                        backgroundColor: '#222',
+                        border: 'none',
+                        color: '#888',
+                        boxShadow: 'none',
+                        padding: '10px'
+                    },
+                    '.Label': {
+                        color: '#fff',
+                        fontSize: '1em'
+                    },
+                    '.Error': {
+                        color: 'red'
+                    }
+                }
+            };
+
+            elements = stripe.elements({ appearance, clientSecret: payNowClientSecret });
+            paymentElement = elements.create('payment', {
+                layout: 'tabs',
+                fields: {
+                    billingDetails: 'never'
+                }
+            });
+            paymentElement.mount('#payment-element');
+        }
+
+        document.querySelectorAll('.payment-option').forEach(option => {
+            option.addEventListener('click', async function() {
+                document.querySelectorAll('.payment-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                    opt.classList.add('unselected');
+                });
+                this.classList.add('selected');
+                this.classList.remove('unselected');
+
+                const type = this.dataset.type;
+                document.getElementById('pay-now-form').classList.add('hidden'); // Ensure correct class if switched back
+                document.getElementById('pay-in-club-form').classList.add('hidden');
+                document.getElementById(type + '-form').classList.remove('hidden');
+                document.getElementById('hidden-paymentType').value = type;
+
+                if (type === 'pay-now') {
+                    await initStripePayment();
+                }
+            });
+        });
+
+        // Now call initStripePayment after setting hidden fields
+        initStripePayment();
+
+        const form = document.getElementById('payment-form');
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const paymentType = document.getElementById('hidden-paymentType').value;
+            const successUrl = `${window.location.origin}/success.html?location=${encodeURIComponent(gymLocation || '')}&plan=${encodeURIComponent(plan || '')}`;
+
+            if (paymentType === 'pay-now') {
+                const name = document.getElementById('pay-now-name').value;
+                if (!name) {
+                    document.getElementById('payment-message').textContent = 'Please enter your name.';
+                    return;
+                }
+
+                let { error, setupIntent } = await stripe.confirmSetup({
+                    elements,
+                    confirmParams: {
+                        return_url: successUrl,
+                        payment_method_data: {
+                            billing_details: {
+                                name: name,
+                                email: document.getElementById('hidden-email').value,
+                                phone: document.getElementById('hidden-phone').value,
+                                address: {
+                                    country: 'AU',
+                                    line1: document.getElementById('hidden-address').value,
+                                    line2: '',  // Optional line2
+                                    city: document.getElementById('hidden-city').value,
+                                    state: document.getElementById('hidden-state').value,
+                                    postal_code: document.getElementById('hidden-postcode').value
+                                }
+                            }
+                        },
+                        mandate_data: {
+                            customer_acceptance: {
+                                type: 'online',
+                                accepted_at: Math.floor(Date.now() / 1000),
+                                online: {
+                                    ip_address: '127.0.0.1', // Placeholder; can get from backend if needed
+                                    user_agent: navigator.userAgent
+                                }
+                            }
+                        }
+                    },
+                    redirect: 'if_required'
+                });
+
+                if (error) {
+                    document.getElementById('payment-message').textContent = error.message;
+                    return;
+                }
+
+                // Updated plan-to-priceId mapping
+                const planToPriceId = {
+                    'basic': 'price_1Ra8rhGPVHY9A9BIdVGKOUFP',
+                    'no-contract': 'price_1Ra8rhGPVHY9A9BIdVGKOUFP',
+                    'loyalty-12-months': 'price_1RnDVLGPVHY9A9BIzfIyuvKt'
+                };
+                const priceId = planToPriceId[document.getElementById('hidden-plan').value] || 'price_1RmBy88A2e4dDvfp6XCK0JPr'; // Fallback to hardcoded
+
+                const response = await fetch('https://lyf-test-1.onrender.com/create-subscription-final', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        customerId: payNowCustomerId,
+                        setupIntentId: setupIntent.id,
+                        priceId: priceId // Add priceId to body
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    document.getElementById('payment-message').textContent = errorData.error || 'Subscription failed.';
+                    return;
+                }
+
+                window.location.href = successUrl;
+            } else {
+                window.location.href = successUrl;
+            }
+        });
+    </script>
+</body>
+</html>
