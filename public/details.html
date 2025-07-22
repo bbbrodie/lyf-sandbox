@@ -401,26 +401,26 @@
 
             try {
                 // Send details to server for email
-                const response = await fetch('https://lyf-test-1.onrender.com/send-details-email', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        location: normalizedLocation, // Use normalized location
-                        plan: selectedPlan,
-                        firstName,
-                        lastName,
-                        dob,
-                        phone,
-                        email,
-                        address,
-                        state,
-                        city,
-                        postcode,
-                        emergencyFirst,
-                        emergencyLast,
-                        emergencyPhone
-                    })
-                });
+const response = await fetch('/send-details-email', {  // Changed to relative '/'
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        location: normalizedLocation,
+        plan: selectedPlan,
+        firstName,
+        lastName,
+        dob,
+        phone,
+        email,
+        address,
+        state,
+        city,
+        postcode,
+        emergencyFirst,
+        emergencyLast,
+        emergencyPhone
+    })
+});
 
                 if (!response.ok) {
                     throw new Error('Failed to send details email.');
