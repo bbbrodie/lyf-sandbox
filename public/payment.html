@@ -514,21 +514,34 @@
                     return;
                 }
 
-                // Updated plan-to-priceId mapping
-                const planToPriceId = {
-                    'basic': 'price_1Ra8rhGPVHY9A9BIdVGKOUFP',
-                    'no-contract': 'price_1Ra8rhGPVHY9A9BIdVGKOUFP',
-                    'loyalty-12-months': 'price_1RnDVLGPVHY9A9BIzfIyuvKt'
+                // Plan mappings
+                const planMappings = {
+                    'no-contract': {
+                        recurringPriceId: 'price_1RnVgX8A2e4dDvfpAG0qPvqh',
+                        oneTimePriceId: 'price_1RnVfX8A2e4dDvfpvVPXR5Zw',
+                        trialDays: 0
+                    },
+                    'loyalty-12-months': {
+                        recurringPriceId: 'price_1RnVjJ8A2e4dDvfpzapefcqZ',
+                        oneTimePriceId: 'price_1RnViF8A2e4dDvfposccsIp5',
+                        trialDays: 42  // 6 weeks
+                    }
                 };
-                const priceId = planToPriceId[document.getElementById('hidden-plan').value] || 'price_1RmBy88A2e4dDvfp6XCK0JPr'; // Fallback to hardcoded
+                const selectedMapping = planMappings[document.getElementById('hidden-plan').value] || {
+                    recurringPriceId: 'price_1RmBy88A2e4dDvfp6XCK0JPr', // Fallback recurring
+                    oneTimePriceId: 'price_1RnVfX8A2e4dDvfpvVPXR5Zw', // Fallback one-time
+                    trialDays: 0
+                };
 
                 const response = await fetch('/create-subscription-final', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        customerId: payNowCustomerId,
+                        customerId: setupCustomerId,
                         setupIntentId: setupIntent.id,
-                        priceId: priceId // Add priceId to body
+                        priceId: selectedMapping.recurringPriceId,
+                        oneTimePriceId: selectedMapping.oneTimePriceId,
+                        trialDays: selectedMapping.trialDays
                     })
                 });
 
