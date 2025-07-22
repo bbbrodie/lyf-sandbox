@@ -514,19 +514,19 @@
                     return;
                 }
 
-                // Plan mappings
-                const planMappings = {
-                    'no-contract': {
-                        recurringPriceId: 'price_1RnVgX8A2e4dDvfpAG0qPvqh',
-                        oneTimePriceId: 'price_1RnVfX8A2e4dDvfpvVPXR5Zw',
-                        trialDays: 0
-                    },
-                    'loyalty-12-months': {
-                        recurringPriceId: 'price_1RnVjJ8A2e4dDvfpzapefcqZ',
-                        oneTimePriceId: 'price_1RnViF8A2e4dDvfposccsIp5',
-                        trialDays: 42  // 6 weeks
-                    }
-                };
+// Plan mappings
+const planMappings = {
+    'no-contract': {
+        recurringPriceId: 'price_1RnVgX8A2e4dDvfpAG0qPvqh',
+        oneTimePriceId: 'price_1RnVfX8A2e4dDvfpvVPXR5Zw',
+        trialDays: 0
+    },
+    'loyalty-12-months': {
+        recurringPriceId: 'price_1RnVjJ8A2e4dDvfpzapefcqZ',
+        oneTimePriceId: 'price_1RnViF8A2e4dDvfposccsIp5',
+        trialDays: 42  // 6 weeks
+    }
+};
                 const selectedMapping = planMappings[document.getElementById('hidden-plan').value] || {
                     recurringPriceId: 'price_1RmBy88A2e4dDvfp6XCK0JPr', // Fallback recurring
                     oneTimePriceId: 'price_1RnVfX8A2e4dDvfpvVPXR5Zw', // Fallback one-time
