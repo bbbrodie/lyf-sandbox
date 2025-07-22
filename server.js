@@ -97,7 +97,14 @@ app.post('/send-details-email', async (req, res) => {
 
     const plan = reqPlan || type;  // Use 'plan' if present, fallback to 'type'
 
-    if (!location || !plan || !firstName || !lastName || !dob || !phone || !email || !address || !state || !city || !postcode) {
+    let requiredFieldsMet = false;
+    if (plan === 'free-trial') {
+      requiredFieldsMet = location && plan && firstName && lastName && phone && email;
+    } else {
+      requiredFieldsMet = location && plan && firstName && lastName && dob && phone && email && address && state && city && postcode;
+    }
+
+    if (!requiredFieldsMet) {
       return res.status(400).json({ error: 'Missing required details' });
     }
 
@@ -127,25 +134,32 @@ app.post('/send-details-email', async (req, res) => {
     await transporter.verify();
     console.log('SMTP connection verified');
 
+    // Build address string handling optionals
+    let addressStr = '';
+    if (address) addressStr += address;
+    if (city) addressStr += (addressStr ? ', ' : '') + city;
+    if (state) addressStr += (addressStr ? ', ' : '') + state;
+    if (postcode) addressStr += (addressStr ? ' ' : '') + postcode;
+
     const mailOptions = {
       from: process.env.EMAIL_FROM || process.env.SMTP_USER,
       to: toEmail,
       cc: 'brodie@lyf247.com.au',
-      subject: `New Membership Details Submitted for ${plan} at ${normalizedLocation}`,
-      text: `A new user has submitted their details for a ${plan} membership at ${normalizedLocation}.
+      subject: `New ${plan === 'free-trial' ? 'Free Trial' : 'Membership'} Details Submitted at ${normalizedLocation}`,
+      text: `A new user has submitted their details for a ${plan} at ${normalizedLocation}.
 
 Personal Information:
 - Name: ${firstName} ${lastName}
-- Date of Birth: ${dob}
+- Date of Birth: ${dob || 'N/A'}
 - Phone: ${phone}
 - Email: ${email}
-- Address: ${address}, ${city}, ${state} ${postcode}
+- Address: ${addressStr || 'N/A'}
 
 Emergency Contact:
 - Name: ${emergencyFirst || 'N/A'} ${emergencyLast || ''}
 - Phone: ${emergencyPhone || 'N/A'}
 
-Note: This is before payment processing. The user is being redirected to the payment page.`
+Note: ${plan === 'free-trial' ? 'This is a free trial signup.' : 'This is before payment processing. The user is being redirected to the payment page.'}`
     };
 
     await transporter.sendMail(mailOptions);
