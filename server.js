@@ -47,7 +47,7 @@ app.post('/create-setup-intent', async (req, res) => {
 
 app.post('/create-subscription-final', async (req, res) => {
   try {
-    const { customerId, setupIntentId, priceId } = req.body;
+    const { customerId, setupIntentId, priceId, oneTimePriceId, trialDays } = req.body;
 
     if (!customerId || !setupIntentId || !priceId) {
       return res.status(400).json({ error: 'Missing customerId, setupIntentId, or priceId' });
@@ -61,9 +61,13 @@ app.post('/create-subscription-final', async (req, res) => {
       invoice_settings: { default_payment_method: paymentMethod }
     });
 
+    const addInvoiceItems = oneTimePriceId ? [{ price: oneTimePriceId }] : [];
+
     const subscription = await stripe.subscriptions.create({
       customer: customerId,
       items: [{ price: priceId }],
+      add_invoice_items: addInvoiceItems,
+      trial_period_days: trialDays || 0,
       expand: ['latest_invoice.payment_intent']
     });
 
