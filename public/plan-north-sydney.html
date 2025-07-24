@@ -129,16 +129,34 @@
 
         .options {
             display: flex;
-            gap: 10px;
             flex-direction: column; /* Mobile-first: stack vertically */
         }
 
         .option {
-            flex: 1;
-            padding: 15px;
+            width: calc(100% - 20px); /* Adjust width to account for margins */
+            margin-left: 10px; /* Reduced left gap */
+            margin-right: 10px; /* Reduced right gap */
+            padding: 10px; /* Reduced padding */
             border-radius: 10px;
-            cursor: pointer;
-            width: 100%; /* Widen to fill container */
+            color: #fff;
+            margin-bottom: 10px; /* Space between options */
+            box-sizing: border-box; /* Ensure padding is included in width */
+        }
+
+        .option.no-contract {
+            border: none; /* No border for No Contract */
+        }
+
+        .option.loyalty {
+            border: none; /* No border for Loyalty */
+        }
+
+        .option.selected {
+            background-color: #222; /* Grey for selected */
+        }
+
+        .option.unselected {
+            background-color: rgb(227, 25, 54); /* Red for unselected */
         }
 
         .option input {
@@ -169,23 +187,23 @@
             color: #000;
         }
 
-        .option.selected {
-            background-color: rgb(227, 25, 54);
-            color: #fff;
-        }
-
-        .option.unselected {
-            background-color: #222;
-            color: #fff;
-        }
-
         .option-title {
             font-size: 1em;
+            font-weight: bold; /* Bold titles for both options */
         }
 
         .option-price {
             font-size: 0.9em;
             margin-top: 5px;
+        }
+
+        .extra-text {
+            color: #fff;
+            font-size: 1em;
+            font-weight: 900; /* Extra bold for thicker text */
+            margin: 20px 0 15px; /* Increased bottom margin for more spacing */
+            margin-left: 10px; /* Match left margin of boxes */
+            padding-left: 10px; /* Match left padding of boxes */
         }
 
         .navigation {
@@ -301,22 +319,38 @@
     </div>
     <div class="form-container">
         <div class="current-plan">Current membership plan</div>
-        <div class="plan-title">FREEDOM $18.95 PER WEEK</div>
-        <div class="inclusions-title">Member Inclusions</div>
+        <div class="plan-title">FREEDOM $21 PER WEEK</div>
+        <div class="inclusions-title">Membership Inclusions</div>
         <ul class="inclusions">
-            <li><span>24/7 Access</span></li>
-            <li><span>Free Classes</span></li>
-            <li><span>Free Parking</span></li>
-            <li><span>Free Wifi</span></li>
+            <li><span>Strength + cardio</span></li>
+            <li><span>Personal trainers</span></li>
+            <li><span>Hip-thrust</span></li>
+            <li><span>Hip abductor</span></li>
+            <li><span>Bench: flat + Incline</span></li>
+            <li><span>Hack squat</span></li>
+            <li><span>Stairclimb</span></li>
+            <li><span>Smith</span></li>
+            <li><span>+ sooo much more!</span></li>
         </ul>
         <div class="options">
-            <div class="option selected">
+            <div class="option no-contract selected">
                 <input type="radio" id="no-contract" name="plan" checked>
                 <label for="no-contract">
                     <div class="checkbox"></div>
                     <div>
-                        <div class="option-title">No Contract</div>
-                        <div class="option-price">$18.95/week</div>
+                        <div class="option-title">Freedom - No Strings</div>
+                        <div class="option-price">$21 per week, billed fortnightly</div>
+                    </div>
+                </label>
+            </div>
+            <div class="extra-text">Need an even better deal?</div>
+            <div class="option loyalty unselected">
+                <input type="radio" id="loyalty-12-months" name="plan">
+                <label for="loyalty-12-months">
+                    <div class="checkbox"></div>
+                    <div>
+                        <div class="option-title">Loyalty - 12 months</div>
+                        <div class="option-price">$6 for 6 weeks, then $19 per week</div>
                     </div>
                 </label>
             </div>
