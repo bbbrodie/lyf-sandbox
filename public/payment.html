@@ -323,6 +323,7 @@
         let paymentElement;
         let setupClientSecret;
         let setupCustomerId;
+        let selectedPaymentType = 'card'; // Default to 'card' to avoid sending mandate_data initially
 
         // Parse params and set hidden fields first
         const params = new URLSearchParams(window.location.search);
@@ -458,6 +459,11 @@
                 }
             });
             paymentElement.mount('#payment-element');
+
+            // Listen for payment method type changes
+            paymentElement.on('change', (event) => {
+                selectedPaymentType = event.value.type; // 'card' or 'au_becs_debit'
+            });
         }
 
         document.querySelectorAll('.payment-option').forEach(option => {
@@ -498,36 +504,41 @@
                     return;
                 }
 
-                let { error, setupIntent } = await stripe.confirmSetup({
-                    elements,
-                    confirmParams: {
-                        return_url: successUrl,
-                        payment_method_data: {
-                            billing_details: {
-                                name: name,
-                                email: document.getElementById('hidden-email').value,
-                                phone: document.getElementById('hidden-phone').value,
-                                address: {
-                                    country: 'AU',
-                                    line1: document.getElementById('hidden-address').value,
-                                    line2: '',  // Optional line2
-                                    city: document.getElementById('hidden-city').value,
-                                    state: document.getElementById('hidden-state').value,
-                                    postal_code: document.getElementById('hidden-postcode').value
-                                }
-                            }
-                        },
-                        mandate_data: {
-                            customer_acceptance: {
-                                type: 'online',
-                                accepted_at: Math.floor(Date.now() / 1000),
-                                online: {
-                                    ip_address: '127.0.0.1', // Placeholder; can get from backend if needed
-                                    user_agent: navigator.userAgent
-                                }
+                const confirmParams = {
+                    return_url: successUrl,
+                    payment_method_data: {
+                        billing_details: {
+                            name: name,
+                            email: document.getElementById('hidden-email').value,
+                            phone: document.getElementById('hidden-phone').value,
+                            address: {
+                                country: 'AU',
+                                line1: document.getElementById('hidden-address').value,
+                                line2: '',  // Optional line2
+                                city: document.getElementById('hidden-city').value,
+                                state: document.getElementById('hidden-state').value,
+                                postal_code: document.getElementById('hidden-postcode').value
                             }
                         }
-                    },
+                    }
+                };
+
+                if (selectedPaymentType === 'au_becs_debit') {
+                    confirmParams.mandate_data = {
+                        customer_acceptance: {
+                            type: 'online',
+                            accepted_at: Math.floor(Date.now() / 1000),
+                            online: {
+                                ip_address: '127.0.0.1', // Placeholder; can get from backend if needed
+                                user_agent: navigator.userAgent
+                            }
+                        }
+                    };
+                }
+
+                let { error, setupIntent } = await stripe.confirmSetup({
+                    elements,
+                    confirmParams: confirmParams,
                     redirect: 'if_required'
                 });
 
