@@ -1,5 +1,5 @@
 const express = require('express');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const Stripe = require('stripe'); // Changed to capital S for dynamic init
 const nodemailer = require('nodemailer');
 const path = require('path');
 const app = express();
@@ -10,11 +10,57 @@ console.log('Server initialized with /send-details-email POST endpoint');
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Location to key mapping (using your preferred env var codes)
+const locationKeyMap = {
+  'northsydney': {
+    secret: process.env.STRIPE_SECRET_NS,
+    pub: process.env.STRIPE_PUB_NS
+  },
+  'figtree': {
+    secret: process.env.STRIPE_SECRET_FT,
+    pub: process.env.STRIPE_PUB_FT
+  },
+  'sevenhills': {
+    secret: process.env.STRIPE_SECRET_SH,
+    pub: process.env.STRIPE_PUB_SH
+  },
+  'kogarah': {
+    secret: process.env.STRIPE_SECRET_KO,
+    pub: process.env.STRIPE_PUB_KO
+  }
+};
+
+// New endpoint to get publishable key for frontend
+app.get('/get-pub-key', (req, res) => {
+  const location = req.query.location?.toLowerCase(); // Normalize if needed
+  const keys = locationKeyMap[location];
+  if (!keys || !keys.pub) {
+    return res.status(400).json({ error: 'Invalid or missing location for publishable key' });
+  }
+  res.json({ publishableKey: keys.pub });
+});
+
 app.post('/create-setup-intent', async (req, res) => {
   try {
-    const { name, email, address } = req.body;
+    const { name, email, address, location } = req.body;
 
-    console.log('Received customer data:', { name, email, address });
+    console.log('Received customer data:', { name, email, address, location });
+
+    if (!location) {
+      const errorMsg = 'Missing location';
+      console.error(errorMsg);
+      return res.status(400).json({ error: errorMsg });
+    }
+
+    const normalizedLocation = location.toLowerCase().replace(/-/g, '');
+    const keys = locationKeyMap[normalizedLocation];
+    if (!keys || !keys.secret) {
+      const errorMsg = 'Invalid location for Stripe key';
+      console.error(errorMsg);
+      return res.status(400).json({ error: errorMsg });
+    }
+
+    const stripe = Stripe(keys.secret); // Dynamic init
 
     if (!name || !email || !address || !address.country) {
       const errorMsg = 'Missing required customer details: name, email, or address';
@@ -47,11 +93,21 @@ app.post('/create-setup-intent', async (req, res) => {
 
 app.post('/create-subscription-final', async (req, res) => {
   try {
-    const { customerId, setupIntentId, priceId, oneTimePriceId, trialDays } = req.body;
+    const { customerId, setupIntentId, priceId, oneTimePriceId, trialDays, location } = req.body;
 
-    if (!customerId || !setupIntentId || !priceId) {
-      return res.status(400).json({ error: 'Missing customerId, setupIntentId, or priceId' });
+    if (!customerId || !setupIntentId || !priceId || !location) {
+      return res.status(400).json({ error: 'Missing customerId, setupIntentId, priceId, or location' });
     }
+
+    const normalizedLocation = location.toLowerCase().replace(/-/g, '');
+    const keys = locationKeyMap[normalizedLocation];
+    if (!keys || !keys.secret) {
+      const errorMsg = 'Invalid location for Stripe key';
+      console.error(errorMsg);
+      return res.status(400).json({ error: errorMsg });
+    }
+
+    const stripe = Stripe(keys.secret); // Dynamic init
 
     const setupIntent = await stripe.setupIntents.retrieve(setupIntentId);
     const paymentMethod = setupIntent.payment_method;

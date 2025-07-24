@@ -318,8 +318,7 @@
     </footer>
     <script src="https://js.stripe.com/v3/"></script>
     <script>
-        const stripe = Stripe('pk_test_51RTuA98A2e4dDvfpAxyTpt8jdBPgzMb4ePE3EP7nyh3vB0TFLIZl2399gt4K8kUu4pKl04nB4tL2aze0pUAvSjoh000HmzaYvn');
-
+        let stripe;
         let elements;
         let paymentElement;
         let setupClientSecret;
@@ -358,7 +357,29 @@
             planSummary.textContent = 'Selected Plan: Unknown';
         }
 
+        // Fetch publishable key based on location
+        async function fetchPubKey(location) {
+            try {
+                const response = await fetch(`/get-pub-key?location=${encodeURIComponent(location)}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch publishable key');
+                }
+                const data = await response.json();
+                return data.publishableKey;
+            } catch (error) {
+                document.getElementById('payment-message').textContent = 'Error loading payment system: ' + error.message;
+                return null;
+            }
+        }
+
         async function initStripePayment() {
+            const pubKey = await fetchPubKey(normalizedLocation);
+            if (!pubKey) {
+                document.querySelector('.submit').disabled = true;
+                return;
+            }
+            stripe = Stripe(pubKey);
+
             const name = `${document.getElementById('hidden-firstName').value} ${document.getElementById('hidden-lastName').value}`.trim();
             const email = document.getElementById('hidden-email').value;
             const addressLine1 = document.getElementById('hidden-address').value;
@@ -384,7 +405,8 @@
                         state: state,
                         postal_code: postcode,
                         country: 'AU'
-                    }
+                    },
+                    location: normalizedLocation // Added location
                 })
             });
 
@@ -514,22 +536,60 @@
                     return;
                 }
 
-                // Plan mappings
-                const planMappings = {
-                    'no-contract': {
-                        recurringPriceId: 'price_1RnVgX8A2e4dDvfpAG0qPvqh',
-                       // oneTimePriceId: 'price_1RnVfX8A2e4dDvfpvVPXR5Zw',
-                        trialDays: 0
+                // Plan mappings per location (use placeholders; replace with actual price IDs from each location's Stripe Dashboard)
+                const priceMap = {
+                    'northsydney': {
+                        'no-contract': {
+                            recurringPriceId: 'price_ns_no_contract', // Replace with actual NS no-contract recurring ID
+                            // oneTimePriceId: 'price_ns_no_contract_onetime', // Uncomment if needed
+                            trialDays: 0
+                        },
+                        'loyalty-12-months': {
+                            recurringPriceId: 'price_ns_loyalty_recurring', // Replace with actual
+                            oneTimePriceId: 'price_ns_loyalty_onetime', // Replace with actual
+                            trialDays: 42  // 6 weeks
+                        }
                     },
-                    'loyalty-12-months': {
-                        recurringPriceId: 'price_1RnVjJ8A2e4dDvfpzapefcqZ',
-                        oneTimePriceId: 'price_1RnViF8A2e4dDvfposccsIp5',
-                        trialDays: 42  // 6 weeks
+                    'figtree': {
+                        'no-contract': {
+                            recurringPriceId: 'price_ft_no_contract', // Replace with actual FT no-contract recurring ID
+                            // oneTimePriceId: 'price_ft_no_contract_onetime',
+                            trialDays: 0
+                        },
+                        'loyalty-12-months': {
+                            recurringPriceId: 'price_ft_loyalty_recurring',
+                            oneTimePriceId: 'price_ft_loyalty_onetime',
+                            trialDays: 42
+                        }
+                    },
+                    'sevenhills': {
+                        'no-contract': {
+                            recurringPriceId: 'price_sh_no_contract', // Replace with actual SH no-contract recurring ID
+                            // oneTimePriceId: 'price_sh_no_contract_onetime',
+                            trialDays: 0
+                        },
+                        'loyalty-12-months': {
+                            recurringPriceId: 'price_sh_loyalty_recurring',
+                            oneTimePriceId: 'price_sh_loyalty_onetime',
+                            trialDays: 42
+                        }
+                    },
+                    'kogarah': {
+                        'no-contract': {
+                            recurringPriceId: 'price_ko_no_contract', // Replace with actual KO no-contract recurring ID
+                            // oneTimePriceId: 'price_ko_no_contract_onetime',
+                            trialDays: 0
+                        },
+                        'loyalty-12-months': {
+                            recurringPriceId: 'price_ko_loyalty_recurring',
+                            oneTimePriceId: 'price_ko_loyalty_onetime',
+                            trialDays: 42
+                        }
                     }
                 };
-                const selectedMapping = planMappings[document.getElementById('hidden-plan').value] || {
-                    recurringPriceId: 'price_1RmBy88A2e4dDvfp6XCK0JPr', // Fallback recurring
-                    oneTimePriceId: 'price_1RnVfX8A2e4dDvfpvVPXR5Zw', // Fallback one-time
+                const selectedMapping = priceMap[normalizedLocation]?.[document.getElementById('hidden-plan').value] || {
+                    recurringPriceId: 'price_fallback_recurring', // Overall fallback if location/plan missing
+                    oneTimePriceId: null, // Set to null if no one-time fee
                     trialDays: 0
                 };
 
@@ -541,7 +601,8 @@
                         setupIntentId: setupIntent.id,
                         priceId: selectedMapping.recurringPriceId,
                         oneTimePriceId: selectedMapping.oneTimePriceId,
-                        trialDays: selectedMapping.trialDays
+                        trialDays: selectedMapping.trialDays,
+                        location: normalizedLocation // Added location
                     })
                 });
 
