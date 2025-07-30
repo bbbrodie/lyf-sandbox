@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -410,7 +411,7 @@ Your ongoing fortnightly fee will be the same as it was at the time of signing; 
             <label for="sign-date">Date *</label>
             <input type="date" id="sign-date" required disabled>
         </div>
-        <div class="section-title">Update Payment Details (Optional)</div>
+        <div class="section-title">Update Payment Details</div>
         <div class="form-group">
             <label>Card Information</label>
             <div id="card-element"></div>
@@ -428,139 +429,178 @@ Your ongoing fortnightly fee will be the same as it was at the time of signing; 
         </div>
     </footer>
     <script>
-        // Stripe setup (replace with your publishable key)
-        const stripe = Stripe('pk_test_YOUR_PUBLISHABLE_KEY_HERE');
-        const elements = stripe.elements();
-        const card = elements.create('card', {
-            style: {
-                base: {
-                    color: '#fff',
-                    fontFamily: 'sans-serif',
-                    fontSize: '16px',
-                    '::placeholder': {
-                        color: '#888',
+        // Fetch publishable key based on location
+        async function fetchPubKey(location) {
+            try {
+                const response = await fetch(`/get-pub-key?location=${encodeURIComponent(location)}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch publishable key');
+                }
+                const data = await response.json();
+                return data.publishableKey;
+            } catch (error) {
+                document.getElementById('error-message').textContent = 'Error loading payment system: ' + error.message;
+                document.getElementById('error-message').style.display = 'block';
+                return null;
+            }
+        }
+
+        (async () => {
+            // Location from URL (e.g., update-seven-hills.html -> seven-hills)
+            const path = window.location.pathname;
+            const gymLocation = path.includes('update-') ? path.split('update-')[1].split('.html')[0] : '';
+            let formattedLocation = gymLocation.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+            document.getElementById('location-title').textContent = formattedLocation ? `at ${formattedLocation}` : '';
+
+            // Fetch pub key
+            const pubKey = await fetchPubKey(gymLocation);
+            if (!pubKey) {
+                // Hide payment section if key fails
+                const paymentSection = document.querySelector('.section-title:last-of-type');
+                if (paymentSection) paymentSection.style.display = 'none';
+                document.getElementById('card-element').parentNode.style.display = 'none';
+                return;
+            }
+
+            // Stripe setup
+            const stripe = Stripe(pubKey);
+            const elements = stripe.elements();
+            const card = elements.create('card', {
+                style: {
+                    base: {
+                        color: '#fff',
+                        fontFamily: 'sans-serif',
+                        fontSize: '16px',
+                        '::placeholder': {
+                            color: '#888',
+                        }
                     }
                 }
-            }
-        });
-        card.mount('#card-element');
-
-        card.addEventListener('change', (event) => {
-            const displayError = document.getElementById('card-errors');
-            if (event.error) {
-                displayError.textContent = event.error.message;
-                displayError.style.display = 'block';
-            } else {
-                displayError.textContent = '';
-                displayError.style.display = 'none';
-            }
-        });
-
-        // Location from URL (e.g., update-seven-hills.html -> seven-hills)
-        const path = window.location.pathname;
-        const gymLocation = path.includes('update-') ? path.split('update-')[1].split('.html')[0] : '';
-        let formattedLocation = gymLocation.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-        document.getElementById('location-title').textContent = formattedLocation ? `at ${formattedLocation}` : '';
-
-        // Set signature date to today
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('sign-date').value = today;
-
-        // PAR-Q dynamic note
-        const parqRadios = document.querySelectorAll('input[type="radio"][name^="parq"]');
-        parqRadios.forEach(radio => {
-            radio.addEventListener('change', () => {
-                const yesAnswers = Array.from(parqRadios).filter(r => r.value === 'yes' && r.checked).length;
-                document.getElementById('parq-note').style.display = yesAnswers > 0 ? 'block' : 'none';
             });
-        });
+            card.mount('#card-element');
 
-        // Submit handler
-        document.querySelector('.submit').addEventListener('click', async (event) => {
-            event.preventDefault();
-            const form = document.querySelector('.form-container');
-            if (!form.checkValidity()) {
-                document.getElementById('error-message').style.display = 'block';
-                return;
-            }
-
-            // Collect data
-            const data = {
-                location: gymLocation.toLowerCase().replace(/-/g, ''),
-                firstName: document.getElementById('first-name').value,
-                lastName: document.getElementById('last-name').value,
-                dob: document.getElementById('dob').value,
-                phone: document.getElementById('phone').value,
-                email: document.getElementById('email').value,
-                address: document.getElementById('address').value,
-                state: document.getElementById('state').value,
-                city: document.getElementById('city').value,
-                postcode: document.getElementById('postcode').value,
-                emergencyFirst: document.getElementById('emergency-first').value,
-                emergencyLast: document.getElementById('emergency-last').value,
-                emergencyPhone: document.getElementById('emergency-phone').value,
-                agreeMembership: document.getElementById('agree-membership').checked,
-                parqAnswers: {
-                    q1: document.querySelector('input[name="parq1"]:checked')?.value,
-                    q2: document.querySelector('input[name="parq2"]:checked')?.value,
-                    q3: document.querySelector('input[name="parq3"]:checked')?.value,
-                    q4: document.querySelector('input[name="parq4"]:checked')?.value,
-                    q5: document.querySelector('input[name="parq5"]:checked')?.value,
-                    q6: document.querySelector('input[name="parq6"]:checked')?.value,
-                    q7: document.querySelector('input[name="parq7"]:checked')?.value
-                },
-                agreeMedical: document.getElementById('agree-medical').checked,
-                signature: document.getElementById('signature').value,
-                signDate: today,
-                paymentMethodId: null
-            };
-
-            // Handle Stripe if card details entered
-            const {error, paymentMethod} = await stripe.createPaymentMethod({
-                type: 'card',
-                card: card
+            card.addEventListener('change', (event) => {
+                const displayError = document.getElementById('card-errors');
+                if (event.error) {
+                    displayError.textContent = event.error.message;
+                    displayError.style.display = 'block';
+                } else {
+                    displayError.textContent = '';
+                    displayError.style.display = 'none';
+                }
             });
 
-            if (error) {
-                document.getElementById('card-errors').textContent = error.message;
-                document.getElementById('card-errors').style.display = 'block';
-                return;
-            } else if (paymentMethod) {
-                data.paymentMethodId = paymentMethod.id;
-            }
+            // Set signature date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('sign-date').value = today;
 
-            // Send to backend
-            try {
-                const response = await fetch('/send-update', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
+            // PAR-Q dynamic note
+            const parqRadios = document.querySelectorAll('input[type="radio"][name^="parq"]');
+            parqRadios.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    const yesAnswers = Array.from(parqRadios).filter(r => r.value === 'yes' && r.checked).length;
+                    document.getElementById('parq-note').style.display = yesAnswers > 0 ? 'block' : 'none';
                 });
-                if (!response.ok) throw new Error('Failed to submit update.');
-                document.getElementById('success-message').style.display = 'block';
-                document.getElementById('error-message').style.display = 'none';
-            } catch (err) {
-                document.getElementById('error-message').textContent = 'Error: ' + err.message;
-                document.getElementById('error-message').style.display = 'block';
-                document.getElementById('success-message').style.display = 'none';
-            }
-        });
+            });
 
-        // Mobile detection (from original)
-        function isMobile() {
-            return window.matchMedia("(max-width: 599px)").matches;
-        }
-        if (isMobile()) {
-            document.body.classList.add('mobile');
-            document.querySelectorAll('input, select').forEach(el => el.style.padding = '15px');
-        }
-        window.addEventListener('resize', () => {
+            // Submit handler
+            document.querySelector('.submit').addEventListener('click', async (event) => {
+                event.preventDefault();
+                const form = document.querySelector('.form-container');
+                if (!form.checkValidity()) {
+                    document.getElementById('error-message').style.display = 'block';
+                    return;
+                }
+
+                // Collect data
+                const data = {
+                    location: gymLocation.toLowerCase().replace(/-/g, ''),
+                    firstName: document.getElementById('first-name').value,
+                    lastName: document.getElementById('last-name').value,
+                    dob: document.getElementById('dob').value,
+                    phone: document.getElementById('phone').value,
+                    email: document.getElementById('email').value,
+                    address: document.getElementById('address').value,
+                    state: document.getElementById('state').value,
+                    city: document.getElementById('city').value,
+                    postcode: document.getElementById('postcode').value,
+                    emergencyFirst: document.getElementById('emergency-first').value,
+                    emergencyLast: document.getElementById('emergency-last').value,
+                    emergencyPhone: document.getElementById('emergency-phone').value,
+                    agreeMembership: document.getElementById('agree-membership').checked,
+                    parqAnswers: {
+                        q1: document.querySelector('input[name="parq1"]:checked')?.value,
+                        q2: document.querySelector('input[name="parq2"]:checked')?.value,
+                        q3: document.querySelector('input[name="parq3"]:checked')?.value,
+                        q4: document.querySelector('input[name="parq4"]:checked')?.value,
+                        q5: document.querySelector('input[name="parq5"]:checked')?.value,
+                        q6: document.querySelector('input[name="parq6"]:checked')?.value,
+                        q7: document.querySelector('input[name="parq7"]:checked')?.value
+                    },
+                    agreeMedical: document.getElementById('agree-medical').checked,
+                    signature: document.getElementById('signature').value,
+                    signDate: today,
+                    paymentMethodId: null
+                };
+
+                // Handle Stripe if card details entered
+                const {error, paymentMethod} = await stripe.createPaymentMethod({
+                    type: 'card',
+                    card: card,
+                    billing_details: {
+                        name: `${data.firstName} ${data.lastName}`,
+                        email: data.email,
+                        address: {
+                            line1: data.address,
+                            city: data.city,
+                            state: data.state,
+                            postal_code: data.postcode,
+                            country: 'AU'
+                        }
+                    }
+                });
+
+                if (error) {
+                    document.getElementById('card-errors').textContent = error.message;
+                    document.getElementById('card-errors').style.display = 'block';
+                    return;
+                } else if (paymentMethod) {
+                    data.paymentMethodId = paymentMethod.id;
+                }
+
+                // Send to backend
+                try {
+                    const response = await fetch('/send-update', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    if (!response.ok) throw new Error('Failed to submit update.');
+                    document.getElementById('success-message').style.display = 'block';
+                    document.getElementById('error-message').style.display = 'none';
+                } catch (err) {
+                    document.getElementById('error-message').textContent = 'Error: ' + err.message;
+                    document.getElementById('error-message').style.display = 'block';
+                    document.getElementById('success-message').style.display = 'none';
+                }
+            });
+
+            // Mobile detection (from original)
+            function isMobile() {
+                return window.matchMedia("(max-width: 599px)").matches;
+            }
             if (isMobile()) {
                 document.body.classList.add('mobile');
-            } else {
-                document.body.classList.remove('mobile');
+                document.querySelectorAll('input, select').forEach(el => el.style.padding = '15px');
             }
-        });
+            window.addEventListener('resize', () => {
+                if (isMobile()) {
+                    document.body.classList.add('mobile');
+                } else {
+                    document.body.classList.remove('mobile');
+                }
+            });
+        })();
     </script>
 </body>
 </html>
