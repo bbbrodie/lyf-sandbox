@@ -150,7 +150,7 @@ const locationEmails = {
 'kogarah': 'kogarah@lyf247.com.au'
 };
 const toEmail = locationEmails[normalizedLocation] || 'brodie@lyf247.com.au';
-console.log(Selected email: ${toEmail} for normalized location: ${normalizedLocation});
+console.log('Selected email: ${toEmail} for normalized location: ${normalizedLocation}');
 const transporter = nodemailer.createTransport({
 host: process.env.SMTP_HOST,
 port: parseInt(process.env.SMTP_PORT || '587'),
@@ -348,7 +348,7 @@ contentType: 'application/pdf'
 ]
 };
 await transporter.sendMail(mailOptions);
-console.log(Update email sent to ${email} (CC: ${toEmail}, brodie@lyf247.com.au));
+console.log('Update email sent to ${email} (CC: ${toEmail}, brodie@lyf247.com.au)');
 res.status(200).json({ success: true });
 } catch (error) {
 console.error('Error in /send-update:', error);
