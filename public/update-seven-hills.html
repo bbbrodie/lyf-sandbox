@@ -410,17 +410,32 @@ Your ongoing fortnightly fee will be the same as it was at the time of signing; 
             <label for="sign-date">Date *</label>
             <input type="date" id="sign-date" required disabled>
         </div>
-        <div class="section-title">Update Payment Details</div>
-        <div class="form-group">
-            <label>Card Information</label>
-            <div id="card-element"></div>
-            <div id="card-errors" class="error-message"></div>
+
+                <!-- New switcher for BECS and Card -->
+
+    <div class="section-title">Update Payment Details</div>
+    <div class="form-group">
+        <label>Payment Method *</label>
+        <div class="radio-group">
+            <label><input type="radio" name="payment-type" value="card" checked> Credit Card</label>
+            <label><input type="radio" name="payment-type" value="becs"> Bank Account (BECS Direct Debit)</label>
         </div>
-        <div id="error-message" class="error-message">Please fill in all required fields.</div>
-        <div id="success-message" class="note" style="color: green; display: none;">Update submitted successfully!</div>
-        <button class="submit">Submit Update</button>
-        <p class="note" style="margin-top: 20px; font-size: 0.9em;">By submitting, you agree your data will be handled per our <a href="/privacy.html" style="color: #888;">Privacy Policy</a>. Bank details are securely processed via Stripe; other info is sent for CRM update.</p>
-    </form>
+    </div>
+    <div class="form-group" id="payment-element-container">
+        <label id="payment-label">Card Information</label>
+        <div id="payment-element"></div>
+        <div id="payment-errors" class="error-message"></div>
+    </div>
+    <div id="becs-mandate" class="note" style="display: none; margin-top: 10px;">By providing your bank account details and confirming this payment, you authorise Lyf 24/7 and Stripe, our payment service provider, to send instructions to your bank to debit your account in accordance with the terms of your membership. You are entitled to a refund from your bank under the terms and conditions of your agreement with your bank. A refund must be claimed within 8 weeks starting from the date on which your account was debited. Please contact us for more details.</div>
+
+    <div id="error-message" class="error-message">Please fill in all required fields.</div>
+    <div id="success-message" class="note" style="color: green; display: none;">Update submitted successfully!</div>
+    <button class="submit">Submit Update</button>
+    <p class="note" style="margin-top: 20px; font-size: 0.9em;">By submitting, you agree your data will be handled per our <a href="/privacy.html" style="color: #888;">Privacy Policy</a>. Bank details are securely processed via Stripe; other info is sent for CRM update.</p>
+
+            <!-- End New Switcher -->
+</form>
+
     <footer>
         <img src="logo.png" alt="Lyf24/7 Logo" class="logo">
         <div class="legal">
