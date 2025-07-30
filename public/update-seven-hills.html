@@ -467,6 +467,7 @@ Your ongoing fortnightly fee will be the same as it was at the time of signing; 
             const stripe = Stripe(pubKey);
             const elements = stripe.elements();
             const card = elements.create('card', {
+                hidePostalCode: true,
                 style: {
                     base: {
                         color: '#fff',
