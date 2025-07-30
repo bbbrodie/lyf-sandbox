@@ -267,14 +267,14 @@
             <input type="email" id="email" placeholder="Email" required>
         </div>
         <div class="form-group">
-            <label for="address">Address *</label>
-            <input type="text" id="address" placeholder="Address" required>
+            <label for="address">Address</label>
+            <input type="text" id="address" placeholder="Address">
         </div>
         <div class="form-group">
             <div class="form-row">
                 <div>
-                    <label for="state">State *</label>
-                    <select id="state" required>
+                    <label for="state">State</label>
+                    <select id="state">
                         <option value="" selected disabled>State</option>
                         <option value="NSW">NSW</option>
                         <option value="VIC">VIC</option>
@@ -287,12 +287,12 @@
                     </select>
                 </div>
                 <div>
-                    <label for="city">City *</label>
-                    <input type="text" id="city" placeholder="City" required>
+                    <label for="city">City</label>
+                    <input type="text" id="city" placeholder="City">
                 </div>
                 <div>
-                    <label for="postcode">Postcode *</label>
-                    <input type="text" id="postcode" placeholder="Postcode" required>
+                    <label for="postcode">Postcode</label>
+                    <input type="text" id="postcode" placeholder="Postcode">
                 </div>
             </div>
         </div>
@@ -431,19 +431,21 @@ Your ongoing fortnightly fee will be the same as it was at the time of signing; 
     <script>
         // Fetch publishable key based on location
         async function fetchPubKey(location) {
-            try {
-                const response = await fetch(`/get-pub-key?location=${encodeURIComponent(location)}`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch publishable key');
-                }
-                const data = await response.json();
-                return data.publishableKey;
-            } catch (error) {
-                document.getElementById('error-message').textContent = 'Error loading payment system: ' + error.message;
-                document.getElementById('error-message').style.display = 'block';
-                return null;
-            }
+    try {
+        // Normalize location by removing hyphens
+        const normalizedLocation = location.replace(/-/g, '');
+        const response = await fetch(`/get-pub-key?location=${encodeURIComponent(normalizedLocation)}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch publishable key');
         }
+        const data = await response.json();
+        return data.publishableKey;
+    } catch (error) {
+        document.getElementById('error-message').textContent = 'Error loading payment system: ' + error.message;
+        document.getElementById('error-message').style.display = 'block';
+        return null;
+    }
+}
 
         (async () => {
             // Location from URL (e.g., update-seven-hills.html -> seven-hills)
