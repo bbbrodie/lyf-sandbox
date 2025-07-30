@@ -215,6 +215,33 @@
                 padding: 12px 20px;
             }
         }
+
+        #successPopup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #111;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            z-index: 1001;
+            text-align: center;
+            color: #fff;
+        }
+        #overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        button:disabled { background: gray; }
     </style>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17280409330"></script>
@@ -429,8 +456,7 @@ Your ongoing fortnightly fee will be the same as it was at the time of signing; 
     <div id="becs-mandate" class="note" style="display: none; margin-top: 10px;">By providing your bank account details and confirming this payment, you authorise Lyf 24/7 and Stripe, our payment service provider, to send instructions to your bank to debit your account in accordance with the terms of your membership. You are entitled to a refund from your bank under the terms and conditions of your agreement with your bank. A refund must be claimed within 8 weeks starting from the date on which your account was debited. Please contact us for more details.</div>
 
     <div id="error-message" class="error-message">Please fill in all required fields.</div>
-    <div id="success-message" class="note" style="color: green; display: none;">Update submitted successfully!</div>
-    <button class="submit">Submit Update</button>
+    <button class="submit" id="submitBtn">Submit Update</button>
     <p class="note" style="margin-top: 20px; font-size: 0.9em;">By submitting, you agree your data will be handled per our <a href="/privacy.html" style="color: #888;">Privacy Policy</a>. Bank details are securely processed via Stripe; other info is sent for CRM update.</p>
 
             <!-- End New Switcher -->
@@ -442,6 +468,14 @@ Your ongoing fortnightly fee will be the same as it was at the time of signing; 
             <a href="/privacy.html">Privacy Policy</a> © 2025 Lyf 24/7 is a trading name of BKAJ Fitness Pty Ltd. All rights reserved. <a href="/terms.html">Terms and Conditions</a>
         </div>
     </footer>
+
+    <div id="overlay"></div>
+    <div id="successPopup">
+        <h2>Success!</h2>
+        <p>Update submitted successfully!</p>
+        <button onclick="closePopup()">OK</button>
+    </div>
+
 <script>
         // Fetch publishable key based on location
         async function fetchPubKey(location) {
@@ -572,10 +606,12 @@ Your ongoing fortnightly fee will be the same as it was at the time of signing; 
             document.querySelector('.submit').addEventListener('click', async (event) => {
                 event.preventDefault();
                 const button = event.target;
+                button.textContent = 'Submitting...';
                 button.disabled = true; // Disable to prevent double submit
                 const form = document.querySelector('.form-container');
                 if (!form.checkValidity()) {
                     document.getElementById('error-message').style.display = 'block';
+                    button.textContent = 'Submit Update';
                     button.disabled = false;
                     return;
                 }
@@ -635,6 +671,7 @@ Your ongoing fortnightly fee will be the same as it was at the time of signing; 
                     if (error) {
                         document.getElementById('payment-errors').textContent = error.message;
                         document.getElementById('payment-errors').style.display = 'block';
+                        button.textContent = 'Submit Update';
                         button.disabled = false;
                         return;
                     } else if (paymentMethod) {
@@ -650,12 +687,13 @@ Your ongoing fortnightly fee will be the same as it was at the time of signing; 
                         body: JSON.stringify(data)
                     });
                     if (!response.ok) throw new Error('Failed to submit update.');
-                    document.getElementById('success-message').style.display = 'block';
+                    document.getElementById('overlay').style.display = 'block';
+                    document.getElementById('successPopup').style.display = 'block';
                     document.getElementById('error-message').style.display = 'none';
                 } catch (err) {
                     document.getElementById('error-message').textContent = 'Error: ' + err.message;
                     document.getElementById('error-message').style.display = 'block';
-                    document.getElementById('success-message').style.display = 'none';
+                    button.textContent = 'Submit Update';
                     button.disabled = false;
                 }
             });
@@ -676,6 +714,15 @@ Your ongoing fortnightly fee will be the same as it was at the time of signing; 
                 }
             });
         })();
+
+        function closePopup() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('successPopup').style.display = 'none';
+            // Optionally reset button
+            const button = document.getElementById('submitBtn');
+            button.textContent = 'Submit Update';
+            button.disabled = false;
+        }
 </script>
 </body>
 </html>
