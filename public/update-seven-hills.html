@@ -470,84 +470,95 @@ Your ongoing fortnightly fee will be the same as it was at the time of signing; 
         // Fetch pub key
         const pubKey = await fetchPubKey(gymLocation);
         if (!pubKey) {
+            // Hide payment section if key fails
             const paymentSection = document.querySelector('.section-title:last-of-type');
             if (paymentSection) paymentSection.style.display = 'none';
-            document.getElementById('payment-element-container').parentNode.style.display = 'none';
+            document.getElementById('payment-element-container').style.display = 'none';
             return;
         }
 
         // Stripe setup
         const stripe = Stripe(pubKey);
         const elements = stripe.elements();
-        let paymentElement; // Will hold card or bank account element
 
-        // Function to create and mount the payment element based on type
-        function createPaymentElement(type) {
-            if (paymentElement) paymentElement.unmount(); // Unmount previous if exists
-            if (type === 'card') {
-                paymentElement = elements.create('card', {
-                    hidePostalCode: true,
-                    style: {
-                        base: {
-                            color: '#fff',
-                            fontFamily: 'sans-serif',
-                            fontSize: '16px',
-                            '::placeholder': {
-                                color: '#888',
-                            }
-                        }
+        // Create both elements upfront
+        const cardElement = elements.create('card', {
+            hidePostalCode: true,
+            style: {
+                base: {
+                    color: '#fff',
+                    fontFamily: 'sans-serif',
+                    fontSize: '16px',
+                    '::placeholder': {
+                        color: '#888',
                     }
-                });
-                document.getElementById('payment-label').textContent = 'Card Information';
-                document.getElementById('becs-mandate').style.display = 'none';
-            } else { // becs
-                paymentElement = elements.create('auBankAccount', {
-                    style: {
-                        base: {
-                            color: '#fff',
-                            fontFamily: 'sans-serif',
-                            fontSize: '16px',
-                            '::placeholder': {
-                                color: '#888',
-                            }
-                        }
-                    }
-                });
-                document.getElementById('payment-label').textContent = 'Bank Account Information (BSB and Account Number)';
-                document.getElementById('becs-mandate').style.display = 'block';
+                }
             }
-            paymentElement.mount('#payment-element');
+        });
+
+        const becsElement = elements.create('auBankAccount', {
+            style: {
+                base: {
+                    color: '#fff',
+                    fontFamily: 'sans-serif',
+                    fontSize: '16px',
+                    '::placeholder': {
+                        color: '#888',
+                    }
+                }
+            }
+        });
+
+        // Function to switch payment element
+        function switchPaymentElement(type) {
+            const label = document.getElementById('payment-label');
+            const mandate = document.getElementById('becs-mandate');
+            const errors = document.getElementById('payment-errors');
+
+            // Unmount current if mounted
+            if (currentPaymentElement) {
+                currentPaymentElement.unmount();
+            }
+
+            if (type === 'card') {
+                currentPaymentElement = cardElement;
+                label.textContent = 'Card Information';
+                mandate.style.display = 'none';
+            } else {
+                currentPaymentElement = becsElement;
+                label.textContent = 'Bank Account Information (BSB and Account Number)';
+                mandate.style.display = 'block';
+            }
+
+            currentPaymentElement.mount('#payment-element');
+            errors.textContent = '';
+            errors.style.display = 'none';
         }
 
-        // Initial creation (default to card)
-        createPaymentElement('card');
+        let currentPaymentElement = null;
+        // Initial: card
+        switchPaymentElement('card');
 
         // Listen for payment type change
         document.querySelectorAll('input[name="payment-type"]').forEach(radio => {
             radio.addEventListener('change', (e) => {
-                createPaymentElement(e.target.value);
+                switchPaymentElement(e.target.value);
             });
         });
 
         // Payment element error listener
-        const paymentErrors = document.getElementById('payment-errors');
         const handlePaymentChange = (event) => {
+            const errors = document.getElementById('payment-errors');
             if (event.error) {
-                paymentErrors.textContent = event.error.message;
-                paymentErrors.style.display = 'block';
+                errors.textContent = event.error.message;
+                errors.style.display = 'block';
             } else {
-                paymentErrors.textContent = '';
-                paymentErrors.style.display = 'none';
+                errors.textContent = '';
+                errors.style.display = 'none';
             }
         };
-        const paymentTypeRadios = document.querySelectorAll('input[name="payment-type"]');
-        paymentTypeRadios.forEach(radio => {
-            radio.addEventListener('change', () => {
-                paymentElement.off('change', handlePaymentChange); // Remove old listener
-                paymentElement.on('change', handlePaymentChange); // Add to new element
-            });
-        });
-        paymentElement.on('change', handlePaymentChange); // Initial
+        cardElement.on('change', handlePaymentChange);
+        becsElement.on('change', handlePaymentChange);
 
         // Set signature date to today
         const today = new Date().toISOString().split('T')[0];
@@ -608,9 +619,10 @@ Your ongoing fortnightly fee will be the same as it was at the time of signing; 
             // Handle Stripe if payment details entered
             const paymentType = document.querySelector('input[name="payment-type"]:checked')?.value;
             if (paymentType) {
+                const paymentKey = paymentType === 'card' ? 'card' : 'au_becs_debit';
                 const {error, paymentMethod} = await stripe.createPaymentMethod({
                     type: paymentType === 'card' ? 'card' : 'au_becs_debit',
-                    [paymentType === 'card' ? 'card' : 'au_becs_debit']: paymentElement,
+                    [paymentKey]: currentPaymentElement,
                     billing_details: {
                         name: `${data.firstName} ${data.lastName}`,
                         email: data.email,
@@ -625,8 +637,8 @@ Your ongoing fortnightly fee will be the same as it was at the time of signing; 
                 });
 
                 if (error) {
-                    paymentErrors.textContent = error.message;
-                    paymentErrors.style.display = 'block';
+                    document.getElementById('payment-errors').textContent = error.message;
+                    document.getElementById('payment-errors').style.display = 'block';
                     button.disabled = false;
                     return;
                 } else if (paymentMethod) {
