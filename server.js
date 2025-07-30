@@ -326,12 +326,12 @@ const mailOptions = {
 from: process.env.EMAIL_FROM || process.env.SMTP_USER,
 to: email,  // Send to the member's email
 cc: `${toEmail}, brodie@lyf247.com.au`,  // CC location and admin
-subject: `Lyf 24/7 ${normalizedLocation}`,
+subject: `Lyf 24/7 ${formattedLocation}`,
 text: `Hi ${firstName},
 
 Thank you for updating your details with Lyf 24/7 ${formattedLocation}.
 
-We've attached a copy of your updated details for your records.
+We've attached a copy for your records :)
 
 Lyf 24/7`,
 attachments: [
