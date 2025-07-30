@@ -229,6 +229,9 @@ const keys = locationKeyMap[normalizedLocation];
 if (!keys || !keys.secret) {
 return res.status(400).json({ error: 'Invalid location' });
 }
+//reformat location
+const formattedLocation = normalizedLocation.split(/(?=[A-Z])/).map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+//end location bit
 const stripe = Stripe(keys.secret);
 let customerId = null;
 let stripeUpdateMessage = 'No payment update attempted.';
@@ -317,29 +320,14 @@ from: process.env.EMAIL_FROM || process.env.SMTP_USER,
 to: email,  // Send to the member's email
 cc: `${toEmail}, brodie@lyf247.com.au`,  // CC location and admin
 subject: `Your Member Details Update Confirmation at Lyf 24/7 ${normalizedLocation}`,
-text: `Thank you for updating your details at ${normalizedLocation}. Attached is a PDF summary of your submission for your records.
+text: `Hi ${firstName},
 
-Personal Information:
-- Name: ${firstName} ${lastName}
-- Date of Birth: ${dob}
-- Phone: ${phone}
-- Email: ${email}
-- Address: ${addressStr}
+Thank you for updating your details with Lyf 24/7 ${formattedLocation}.
 
-Emergency Contact:
-- Name: ${emergencyFirst || 'N/A'} ${emergencyLast || ''}
-- Phone: ${emergencyPhone || 'N/A'}
+Your payment amount and dates will stay the same, however, the payment reference will switch to "Lyf 24/7 ${formattedLocation}".
+We've attached a PDF copy of your new waiver for your records.
 
-Membership Agreement: Agreed (${agreeMembership})
-Medical Waiver (PAR-Q):
-${parqText || 'N/A'}
-Agreed to risks: ${agreeMedical}
-
-Signature: ${signature} on ${signDate}
-
-Stripe Update: ${stripeUpdateMessage} (Customer ID: ${customerId || 'N/A'})
-
-If you have any questions, contact us at ${toEmail}.`,
+Lyf 24/7`,
 attachments: [
 {
 filename: 'membership-update-summary.pdf',
