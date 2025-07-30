@@ -150,7 +150,7 @@ const locationEmails = {
 'kogarah': 'kogarah@lyf247.com.au'
 };
 const toEmail = locationEmails[normalizedLocation] || 'brodie@lyf247.com.au';
-console.log('Selected email: ${toEmail} for normalized location: ${normalizedLocation}');
+console.log(`Selected email: ${toEmail} for normalized location: ${normalizedLocation}`);
 const transporter = nodemailer.createTransport({
 host: process.env.SMTP_HOST,
 port: parseInt(process.env.SMTP_PORT || '587'),
@@ -172,25 +172,24 @@ const mailOptions = {
 from: process.env.EMAIL_FROM || process.env.SMTP_USER,
 to: toEmail,
 cc: 'brodie@lyf247.com.au',
-subject: New ${plan === 'free-trial' ? 'Free Trial' : 'Membership'} Details Submitted at ${normalizedLocation},
+subject: `New ${plan === 'free-trial' ? 'Free Trial' : 'Membership'} Details Submitted at ${normalizedLocation}`,
 text: `A new user has submitted their details for a ${plan} at ${normalizedLocation}.
-Personal Information:
 
-Name: ${firstName} ${lastName}
-Date of Birth: ${dob || 'N/A'}
-Phone: ${phone}
-Email: ${email}
-Address: ${addressStr || 'N/A'}
+Personal Information:
+- Name: ${firstName} ${lastName}
+- Date of Birth: ${dob || 'N/A'}
+- Phone: ${phone}
+- Email: ${email}
+- Address: ${addressStr || 'N/A'}
 
 Emergency Contact:
-
-Name: ${emergencyFirst || 'N/A'} ${emergencyLast || ''}
-Phone: ${emergencyPhone || 'N/A'}
+- Name: ${emergencyFirst || 'N/A'} ${emergencyLast || ''}
+- Phone: ${emergencyPhone || 'N/A'}
 
 Note: ${plan === 'free-trial' ? 'This is a free trial signup.' : 'This is before payment processing. The user is being redirected to the payment page.'}`
 };
 await transporter.sendMail(mailOptions);
-console.log(Email sent to ${toEmail} (CC: brodie@lyf247.com.au) for location ${normalizedLocation});
+console.log(`Email sent to ${toEmail} (CC: brodie@lyf247.com.au) for location ${normalizedLocation}`);
 res.status(200).json({ success: true });
 } catch (error) {
 console.error('Error in /send-details-email:', error);
@@ -236,13 +235,13 @@ let stripeUpdateMessage = 'No payment update attempted.';
 if (paymentMethodId || true) {  // Always try to update customer details if possible
 // Search for customer by email
 const customers = await stripe.customers.search({
-query: email:"${email}",
+query: `email:"${email}"`,
 });
 if (customers.data.length > 0) {
 customerId = customers.data[0].id;
 // Update customer details (name, address, phone)
 await stripe.customers.update(customerId, {
-name: ${firstName} ${lastName},
+name: `${firstName} ${lastName}`,
 phone: phone,
 address: {
 line1: address,
@@ -265,7 +264,7 @@ stripeUpdateMessage = 'Customer details updated (no new payment method provided)
 } else if (paymentMethodId) {
 // If no customer found but payment provided, create new
 const customer = await stripe.customers.create({
-name: ${firstName} ${lastName},
+name: `${firstName} ${lastName}`,
 email: email,
 phone: phone,
 address: {
@@ -310,34 +309,36 @@ pass: process.env.SMTP_PASS
 }
 });
 // Format PAR-Q answers
-const parqText = Object.entries(parqAnswers || {}).map(([q, ans]) => Q${q.slice(1)}: ${ans.toUpperCase()}).join('\n');
+const parqText = Object.entries(parqAnswers || {}).map(([q, ans]) => `Q${q.slice(1)}: ${ans.toUpperCase()}`).join('\n');
 // Build address string
-const addressStr = ${address}, ${city}, ${state} ${postcode};
+const addressStr = `${address}, ${city}, ${state} ${postcode}`;
 const mailOptions = {
 from: process.env.EMAIL_FROM || process.env.SMTP_USER,
 to: email,  // Send to the member's email
-cc: ${toEmail}, brodie@lyf247.com.au,  // CC location and admin
-subject: Your Member Details Update Confirmation at Lyf 24/7 ${normalizedLocation},
+cc: `${toEmail}, brodie@lyf247.com.au`,  // CC location and admin
+subject: `Your Member Details Update Confirmation at Lyf 24/7 ${normalizedLocation}`,
 text: `Thank you for updating your details at ${normalizedLocation}. Attached is a PDF summary of your submission for your records.
-Personal Information:
 
-Name: ${firstName} ${lastName}
-Date of Birth: ${dob}
-Phone: ${phone}
-Email: ${email}
-Address: ${addressStr}
+Personal Information:
+- Name: ${firstName} ${lastName}
+- Date of Birth: ${dob}
+- Phone: ${phone}
+- Email: ${email}
+- Address: ${addressStr}
 
 Emergency Contact:
-
-Name: ${emergencyFirst || 'N/A'} ${emergencyLast || ''}
-Phone: ${emergencyPhone || 'N/A'}
+- Name: ${emergencyFirst || 'N/A'} ${emergencyLast || ''}
+- Phone: ${emergencyPhone || 'N/A'}
 
 Membership Agreement: Agreed (${agreeMembership})
 Medical Waiver (PAR-Q):
 ${parqText || 'N/A'}
 Agreed to risks: ${agreeMedical}
+
 Signature: ${signature} on ${signDate}
+
 Stripe Update: ${stripeUpdateMessage} (Customer ID: ${customerId || 'N/A'})
+
 If you have any questions, contact us at ${toEmail}.`,
 attachments: [
 {
@@ -348,7 +349,7 @@ contentType: 'application/pdf'
 ]
 };
 await transporter.sendMail(mailOptions);
-console.log('Update email sent to ${email} (CC: ${toEmail}, brodie@lyf247.com.au)');
+console.log(`Update email sent to ${email} (CC: ${toEmail}, brodie@lyf247.com.au)`);
 res.status(200).json({ success: true });
 } catch (error) {
 console.error('Error in /send-update:', error);
@@ -366,35 +367,35 @@ doc.on('error', reject);
 // Customize PDF content
 doc.fontSize(20).text('Lyf 24/7 Membership Update Summary', { align: 'center' });
 doc.moveDown(0.5);
-doc.fontSize(12).text(Location: ${data.location.toUpperCase()});
-doc.text(Date: ${data.signDate});
+doc.fontSize(12).text(`Location: ${data.location.toUpperCase()}`);
+doc.text(`Date: ${data.signDate}`);
 doc.moveDown();
 doc.fontSize(14).text('Personal Information');
-doc.fontSize(12).text(Name: ${data.firstName} ${data.lastName});
-doc.text(Date of Birth: ${data.dob});
-doc.text(Phone: ${data.phone});
-doc.text(Email: ${data.email});
-doc.text(Address: ${data.address}, ${data.city}, ${data.state} ${data.postcode});
+doc.fontSize(12).text(`Name: ${data.firstName} ${data.lastName}`);
+doc.text(`Date of Birth: ${data.dob}`);
+doc.text(`Phone: ${data.phone}`);
+doc.text(`Email: ${data.email}`);
+doc.text(`Address: ${data.address}, ${data.city}, ${data.state} ${data.postcode}`);
 doc.moveDown();
 doc.fontSize(14).text('Emergency Contact');
-doc.text(Name: ${data.emergencyFirst || 'N/A'} ${data.emergencyLast || ''});
-doc.text(Phone: ${data.emergencyPhone || 'N/A'});
+doc.text(`Name: ${data.emergencyFirst || 'N/A'} ${data.emergencyLast || ''}`);
+doc.text(`Phone: ${data.emergencyPhone || 'N/A'}`);
 doc.moveDown();
 doc.fontSize(14).text('Membership Agreement');
 doc.text('Agreed: Yes');
 doc.moveDown();
 doc.fontSize(14).text('Medical Waiver (PAR-Q)');
 Object.entries(data.parqAnswers || {}).forEach(([q, ans]) => {
-doc.text(Question ${q.slice(1)}: ${ans.toUpperCase()});
+doc.text(`Question ${q.slice(1)}: ${ans.toUpperCase()}`);
 });
 doc.text('Agreed to risks: Yes');
 doc.moveDown();
 doc.fontSize(14).text('Signature');
-doc.text(${data.signature} on ${data.signDate});
+doc.text(`${data.signature} on ${data.signDate}`);
 doc.moveDown();
 doc.fontSize(14).text('Stripe Update');
 doc.text(data.stripeUpdateMessage);
-doc.text(Customer ID: ${data.customerId || 'N/A'});
+doc.text(`Customer ID: ${data.customerId || 'N/A'}`);
 doc.end();
 });
 }
@@ -421,5 +422,5 @@ res.send('Error sending test email: ' + error.message);
 });
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 app.listen(port, () => {
-console.log(Server running on port ${port});
+console.log(`Server running on port ${port}`);
 });
