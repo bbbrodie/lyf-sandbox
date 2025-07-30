@@ -350,49 +350,107 @@ console.error('Error in /send-update:', error);
 res.status(500).json({ error: 'Failed to process update: ' + error.message });
 }
 });
-// Function to generate PDF (added)
+// PDF Fuckery
+
 async function generatePDF(data) {
-return new Promise((resolve, reject) => {
-const doc = new PDFDocument();
-let buffers = [];
-doc.on('data', buffers.push.bind(buffers));
-doc.on('end', () => resolve(Buffer.concat(buffers)));
-doc.on('error', reject);
-// Customize PDF content
-doc.fontSize(20).text('Lyf 24/7 Membership Update Summary', { align: 'center' });
-doc.moveDown(0.5);
-doc.fontSize(12).text(`Location: ${data.location.toUpperCase()}`);
-doc.text(`Date: ${data.signDate}`);
-doc.moveDown();
-doc.fontSize(14).text('Personal Information');
-doc.fontSize(12).text(`Name: ${data.firstName} ${data.lastName}`);
-doc.text(`Date of Birth: ${data.dob}`);
-doc.text(`Phone: ${data.phone}`);
-doc.text(`Email: ${data.email}`);
-doc.text(`Address: ${data.address}, ${data.city}, ${data.state} ${data.postcode}`);
-doc.moveDown();
-doc.fontSize(14).text('Emergency Contact');
-doc.text(`Name: ${data.emergencyFirst || 'N/A'} ${data.emergencyLast || ''}`);
-doc.text(`Phone: ${data.emergencyPhone || 'N/A'}`);
-doc.moveDown();
-doc.fontSize(14).text('Membership Agreement');
-doc.text('Agreed: Yes');
-doc.moveDown();
-doc.fontSize(14).text('Medical Waiver (PAR-Q)');
-Object.entries(data.parqAnswers || {}).forEach(([q, ans]) => {
-doc.text(`Question ${q.slice(1)}: ${ans.toUpperCase()}`);
-});
-doc.text('Agreed to risks: Yes');
-doc.moveDown();
-doc.fontSize(14).text('Signature');
-doc.text(`${data.signature} on ${data.signDate}`);
-doc.moveDown();
-doc.fontSize(14).text('Stripe Update');
-doc.text(data.stripeUpdateMessage);
-doc.text(`Customer ID: ${data.customerId || 'N/A'}`);
-doc.end();
-});
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({ margin: 50 });
+    let buffers = [];
+    doc.on('data', buffers.push.bind(buffers));
+    doc.on('end', () => resolve(Buffer.concat(buffers)));
+    doc.on('error', reject);
+
+    // Add logo if available
+    try {
+      doc.image('public/logo.png', 50, 45, { width: 100, align: 'left' });
+    } catch (err) {
+      console.error('Logo not found or error loading:', err);
+    }
+
+    // Header
+    doc.fontSize(20).text('Lyf 24/7 Membership Update Summary', 50, 80, { align: 'center', underline: true });
+    doc.fontSize(12).text(`Location: ${data.location.toUpperCase()}`, { align: 'center' });
+    doc.text(`Date: ${data.signDate}`, { align: 'center' });
+    doc.moveDown(2);
+
+    // Personal Information section
+    doc.fontSize(14).font('Helvetica-Bold').text('Personal Information');
+    doc.font('Helvetica').fontSize(12);
+    doc.text(`Name: ${data.firstName} ${data.lastName}`);
+    doc.text(`Date of Birth: ${data.dob}`);
+    doc.text(`Phone: ${data.phone}`);
+    doc.text(`Email: ${data.email}`);
+    doc.text(`Address: ${data.address || 'N/A'}, ${data.city || 'N/A'}, ${data.state || 'N/A'} ${data.postcode || 'N/A'}`);
+    doc.moveDown();
+
+    // Emergency Contact section
+    doc.fontSize(14).font('Helvetica-Bold').text('Emergency Contact');
+    doc.font('Helvetica').fontSize(12);
+    doc.text(`Name: ${data.emergencyFirst || 'N/A'} ${data.emergencyLast || ''}`);
+    doc.text(`Phone: ${data.emergencyPhone || 'N/A'}`);
+    doc.moveDown();
+
+    // Membership Agreement section (full text)
+    doc.fontSize(14).font('Helvetica-Bold').text('Membership Agreement');
+    doc.font('Helvetica').fontSize(10); // Smaller font for long text
+    doc.text(`Agreed: Yes`);
+    doc.text('Full Agreement Text:'); // Intro
+    doc.moveDown(0.5);
+    doc.text('I understand and acknowledge that the exercise programs, personal training sessions, exercising, the use of exercising equipment and physical activity including but not limited to unsupervised use, weightlifting, walking, boxing, running and use of various conditioning and exercise equipment involves the risk of injury. I understand and accept the risks of injury, including heart attacks, muscle strains, pulls or tears, broken bones, shin splints, heat prostration, knee/lower back injuries, back and foot injuries, repetitive strain injuries and the like which might arise from an exercise program or the use of exercise and/or conditioning equipment and similar facilities.');
+    doc.moveDown(0.5);
+    doc.text('I have answered all of the questions correctly and to the best of my knowledge. I also understand that this information may be used as a guide only for a Personal Trainer to assess my current health status, and that any assessment does not replace the advice, recommendation or practice of a general medical practitioner. I acknowledge that it is my ultimate responsibility to ensure I am capable of completing any prescribed exercise without harm. If I have any impairment/s or medical condition/s or am requested by a Lyf 24/7 team member, I agree to seek the advice of a general medical practitioner to ensure I am capable of starting and maintaining an exercise program and I will provide the general medical practitioner with all information, including that provided by Lyf 24/7 or my Personal Trainer, relating to the nature of the exercise program, personal training sessions, physical activity or exercise equipment.');
+    doc.moveDown(0.5);
+    doc.text('You acknowledge and agree that Lyf 24/7 may do any act necessary to comply with, or which it is specifically authorised to do by legislation, including but not limited to, work health and safety legislation. To this end, Lyf 24/7 may be required to:');
+    doc.text('a) Undertake a specific risk assessment for the purposes of identifying any hazards and minimising any risks which may arise from you using the Club facilities; and/or');
+    doc.text('b) Conduct further orientation sessions with you for the purposes of communicating and informing you of any hazards and any control measures which have been or will be put in place to ensure, so far as is reasonably practical, your health and safety and the health and safety of others.');
+    doc.moveDown(0.5);
+    doc.text('You acknowledge and agree that while Lyf 24/7 is doing any of these acts, your access to the facilities may be limited or restricted.');
+    doc.moveDown(0.5);
+    doc.text('Member Acknowledgment:');
+    doc.text('PLEASE SIGN BELOW TO ACKNOWLEDGE YOUR ACCEPTANCE OF THE RELEASE AND INDEMNITY PROVISION IN LYF 24/7\'s TERMS AND CONDITIONS.');
+    doc.text('BY ACCEPTING THIS AGREEMENT I ACKNOWLEDGE THAT I HAVE READ AND UNDERSTOOD THE LYF 24/7\'s TERMS AND CONDITIONS. BY ACCEPTING THIS AGREEMENT I ALSO AGREE TO ACCEPT THE TERMS OF THIS AGREEMENT IN ITS ENTIRETY AND TO BE BOUND BY THE CONDITIONS FOR THE DURATION OF MY MEMBERSHIP.');
+    doc.moveDown(0.5);
+    doc.text('This is an ongoing agreement. The agreement will continue until either you or Lyf 24/7 terminate it in the way described in the Lyf 24/7 Terms and Conditions. If an automatic debit arrangement is in place, membership fees will continue to be debited from your credit card or bank account until you notify Lyf 24/7 to cancel this arrangement.');
+    doc.text('Your ongoing fortnightly fee will be the same as it was at the time of signing; if you\'re currently paying $37.90 per fortnight, then you will continue paying $37.90 under this agreement.');
+    doc.moveDown();
+
+    // Medical Waiver (PAR-Q) section with full questions and answers
+    doc.fontSize(14).font('Helvetica-Bold').text('Medical Waiver (PAR-Q)');
+    doc.font('Helvetica').fontSize(12);
+    doc.text('Agreed to risks: Yes');
+    doc.text('Questions and Answers:');
+    doc.moveDown(0.5);
+    const parqQuestions = [
+      "1. Has your doctor ever said that you have a heart condition and that you should only do physical activity recommended by a doctor?",
+      "2. Do you feel pain in your chest when you do physical activity?",
+      "3. In the past month, have you had chest pain when you were not doing physical activity?",
+      "4. Do you lose your balance because of dizziness or do you ever lose consciousness?",
+      "5. Do you have a bone or joint problem (for example, back, knee or hip) that could be made worse by a change in your physical activity?",
+      "6. Is your doctor currently prescribing drugs (for example, water pills) for your blood pressure or heart condition?",
+      "7. Do you know of any other reason why you should not do physical activity?"
+    ];
+    Object.entries(data.parqAnswers || {}).forEach(([q, ans], index) => {
+      doc.text(`${parqQuestions[index - 1]}: ${ans.toUpperCase()}`);
+    });
+    doc.moveDown();
+
+    // Signature section
+    doc.fontSize(14).font('Helvetica-Bold').text('Signature');
+    doc.font('Helvetica').fontSize(12);
+    doc.text(`${data.signature} on ${data.signDate}`);
+    doc.moveDown();
+
+    // Stripe Update section
+    doc.fontSize(14).font('Helvetica-Bold').text('Stripe Update');
+    doc.font('Helvetica').fontSize(12);
+    doc.text(data.stripeUpdateMessage);
+    doc.text(`Customer ID: ${data.customerId || 'N/A'}`);
+
+    doc.end();
+  });
 }
+// end PDF fuckery
+
 app.get('/test-email', async (req, res) => {
 console.log('Test-email endpoint hit');
 try {
