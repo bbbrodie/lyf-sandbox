@@ -505,13 +505,16 @@ Your ongoing fortnightly fee will be the same as it was at the time of signing; 
             });
 
             // Submit handler
-            document.querySelector('.submit').addEventListener('click', async (event) => {
-                event.preventDefault();
-                const form = document.querySelector('.form-container');
-                if (!form.checkValidity()) {
-                    document.getElementById('error-message').style.display = 'block';
-                    return;
-                }
+document.querySelector('.submit').addEventListener('click', async (event) => {
+    event.preventDefault();
+    const button = event.target;
+    button.disabled = true; // Disable button to prevent double clicks
+    const form = document.querySelector('.form-container');
+    if (!form.checkValidity()) {
+        document.getElementById('error-message').style.display = 'block';
+        button.disabled = false; // Re-enable on validation fail
+        return;
+    }
 
                 // Collect data
                 const data = {
