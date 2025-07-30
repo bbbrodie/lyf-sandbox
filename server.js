@@ -229,8 +229,15 @@ const keys = locationKeyMap[normalizedLocation];
 if (!keys || !keys.secret) {
 return res.status(400).json({ error: 'Invalid location' });
 }
-//reformat location
-const formattedLocation = normalizedLocation.split(/(?=[A-Z])/).map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+//static location because its fucked
+const locationFormats = {
+  'northsydney': 'North Sydney',
+  'figtree': 'Figtree',
+  'sevenhills': 'Seven Hills',
+  'kogarah': 'Kogarah'
+};
+const formattedLocation = locationFormats[normalizedLocation] || normalizedLocation.charAt(0).toUpperCase() + normalizedLocation.slice(1);
+
 //end location bit
 const stripe = Stripe(keys.secret);
 let customerId = null;
@@ -319,13 +326,12 @@ const mailOptions = {
 from: process.env.EMAIL_FROM || process.env.SMTP_USER,
 to: email,  // Send to the member's email
 cc: `${toEmail}, brodie@lyf247.com.au`,  // CC location and admin
-subject: `Your Member Details Update Confirmation at Lyf 24/7 ${normalizedLocation}`,
+subject: `Lyf 24/7 ${normalizedLocation}`,
 text: `Hi ${firstName},
 
 Thank you for updating your details with Lyf 24/7 ${formattedLocation}.
 
-Your payment amount and dates will stay the same, however, the payment reference will switch to "Lyf 24/7 ${formattedLocation}".
-We've attached a PDF copy of your new waiver for your records.
+We've attached a copy of your updated details for your records.
 
 Lyf 24/7`,
 attachments: [
