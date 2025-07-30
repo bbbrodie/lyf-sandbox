@@ -232,6 +232,165 @@ Note: ${plan === 'free-trial' ? 'This is a free trial signup.' : 'This is before
   }
 });
 
+app.post('/send-update', async (req, res) => {
+  console.log('Received POST to /send-update with body:', req.body);
+  try {
+    const {
+      location,
+      firstName,
+      lastName,
+      dob,
+      phone,
+      email,
+      address,
+      state,
+      city,
+      postcode,
+      emergencyFirst,
+      emergencyLast,
+      emergencyPhone,
+      agreeMembership,
+      parqAnswers,  // Object like {q1: 'no', q2: 'yes', ...}
+      agreeMedical,
+      signature,
+      signDate,
+      paymentMethodId  // From Stripe.js, if provided
+    } = req.body;
+
+    // Basic validation (expand as needed)
+    if (!location || !firstName || !lastName || !dob || !phone || !email || !address || !state || !city || !postcode || !agreeMembership || !agreeMedical || !signature || !signDate) {
+      return res.status(400).json({ error: 'Missing required details' });
+    }
+
+    const normalizedLocation = location.toLowerCase().replace(/-/g, '');
+    const keys = locationKeyMap[normalizedLocation];
+    if (!keys || !keys.secret) {
+      return res.status(400).json({ error: 'Invalid location' });
+    }
+
+    const stripe = Stripe(keys.secret);
+
+    let customerId = null;
+    let stripeUpdateMessage = 'No payment update attempted.';
+
+    if (paymentMethodId || true) {  // Always try to update customer details if possible
+      // Search for customer by email
+      const customers = await stripe.customers.list({ email, limit: 1 });
+      if (customers.data.length > 0) {
+        customerId = customers.data[0].id;
+        // Update customer details (name, address, phone)
+        await stripe.customers.update(customerId, {
+          name: `${firstName} ${lastName}`,
+          phone: phone,
+          address: {
+            line1: address,
+            city: city,
+            state: state,
+            postal_code: postcode,
+            country: 'AU'  // Assuming Australia
+          }
+        });
+
+        if (paymentMethodId) {
+          // Attach new payment method and set as default
+          await stripe.paymentMethods.attach(paymentMethodId, { customer: customerId });
+          await stripe.customers.update(customerId, {
+            invoice_settings: { default_payment_method: paymentMethodId }
+          });
+          stripeUpdateMessage = 'Payment method updated successfully.';
+        } else {
+          stripeUpdateMessage = 'Customer details updated (no new payment method provided).';
+        }
+      } else if (paymentMethodId) {
+        // If no customer found but payment provided, create new (or handle manually)
+        const customer = await stripe.customers.create({
+          name: `${firstName} ${lastName}`,
+          email: email,
+          phone: phone,
+          address: {
+            line1: address,
+            city: city,
+            state: state,
+            postal_code: postcode,
+            country: 'AU'
+          }
+        });
+        customerId = customer.id;
+        await stripe.paymentMethods.attach(paymentMethodId, { customer: customerId });
+        await stripe.customers.update(customerId, {
+          invoice_settings: { default_payment_method: paymentMethodId }
+        });
+        stripeUpdateMessage = 'New customer created and payment method attached.';
+      } else {
+        stripeUpdateMessage = 'No matching customer found; details will be emailed for manual update.';
+      }
+    }
+
+    // Email setup (similar to /send-details-email)
+    const locationEmails = {
+      'northsydney': 'northsydney@lyf247.com.au',
+      'figtree': 'figtree@lyf247.com.au',
+      'sevenhills': 'sevenhills@lyf247.com.au',
+      'kogarah': 'kogarah@lyf247.com.au'
+    };
+    const toEmail = locationEmails[normalizedLocation] || 'brodie@lyf247.com.au';
+
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      secure: process.env.SMTP_PORT === '465',
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
+      }
+    });
+
+    // Format PAR-Q answers
+    const parqText = Object.entries(parqAnswers || {}).map(([q, ans]) => `Q${q.slice(1)}: ${ans.toUpperCase()}`).join('\n');
+
+    // Build address string
+    const addressStr = `${address}, ${city}, ${state} ${postcode}`;
+
+    const mailOptions = {
+      from: process.env.EMAIL_FROM || process.env.SMTP_USER,
+      to: toEmail,
+      cc: 'brodie@lyf247.com.au',
+      subject: `Member Details Update Submitted at ${normalizedLocation}`,
+      text: `A member has submitted an update for their details at ${normalizedLocation}.
+
+Personal Information:
+- Name: ${firstName} ${lastName}
+- Date of Birth: ${dob}
+- Phone: ${phone}
+- Email: ${email}
+- Address: ${addressStr}
+
+Emergency Contact:
+- Name: ${emergencyFirst || 'N/A'} ${emergencyLast || ''}
+- Phone: ${emergencyPhone || 'N/A'}
+
+Membership Agreement: Agreed (${agreeMembership})
+Medical Waiver (PAR-Q):
+${parqText || 'N/A'}
+Agreed to risks: ${agreeMedical}
+
+Signature: ${signature} on ${signDate}
+
+Stripe Update: ${stripeUpdateMessage} (Customer ID: ${customerId || 'N/A'})
+
+Please enter/update in CRM and handle any manual steps if needed.`
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(`Update email sent to ${toEmail} (CC: brodie@lyf247.com.au)`);
+
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error in /send-update:', error);
+    res.status(500).json({ error: 'Failed to process update: ' + error.message });
+  }
+});
+
 app.get('/test-email', async (req, res) => {
   console.log('Test-email endpoint hit');
   try {
