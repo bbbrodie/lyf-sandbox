@@ -221,8 +221,8 @@ signDate,
 paymentMethodId  // From Stripe.js, if provided
 } = req.body;
 // Basic validation (expand as needed)
-if (!location || !firstName || !lastName || !dob || !phone || !email || !address || !state || !city || !postcode || !agreeMembership || !agreeMedical || !signature || !signDate) {
-return res.status(400).json({ error: 'Missing required details' });
+if (!location || !firstName || !lastName || !dob || !phone || !email || !agreeMembership || !agreeMedical || !signature || !signDate) {
+    return res.status(400).json({ error: 'Missing required details' });
 }
 const normalizedLocation = location.toLowerCase().replace(/-/g, '');
 const keys = locationKeyMap[normalizedLocation];
