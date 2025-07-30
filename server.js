@@ -362,7 +362,7 @@ async function generatePDF(data) {
 
     // Add logo if available
     try {
-      doc.image('public/logo.png', 50, 45, { width: 100, align: 'left' });
+      doc.image('public/logo1.png', 50, 45, { width: 100, align: 'left' });
     } catch (err) {
       console.error('Logo not found or error loading:', err);
     }
